@@ -3,6 +3,7 @@ from typing import Dict, List
 import xarray as xr
 import linopy
 from linopy import Model
+from xarray import where
 
 from microgridspy.model.parameters import ProjectParameters
 
@@ -467,18 +468,39 @@ def add_salvage_value(
         # Initial investment step (including existing capacity for brownfield)
         if step == 1:
             
-            # RES salvage
-            salvage_value += (var['res_units'].sel(steps=step) * 
-                              param['RES_NOMINAL_CAPACITY'] * param['RES_SPECIFIC_INVESTMENT_COST'] *
-                              (max(0, param['RES_LIFETIME'] - project_duration) / param['RES_LIFETIME']) *
-                              discount_factor).sum('renewable_sources')
+            # RES salvage value calculation
+          salvage_value += (
+                var['res_units'].sel(steps=step)
+                * param['RES_NOMINAL_CAPACITY']
+                * param['RES_SPECIFIC_INVESTMENT_COST']
+                * (
+                    where(
+                        param['RES_LIFETIME'] - project_duration > 0,
+                        param['RES_LIFETIME'] - project_duration,
+                        0
+                    )
+                    / param['RES_LIFETIME']
+                )
+                * discount_factor
+            ).sum('renewable_sources')
             
             if is_brownfield:
                 for res in renewable_sources:
                     # Existing salvage value (brownfield) for each renewable source
-                    salvage_value += (param['RES_EXISTING_CAPACITY'] * param['RES_SPECIFIC_INVESTMENT_COST'] *
-                                    (max(0, param['RES_LIFETIME'] - param['RES_EXISTING_YEARS'] - project_duration) / param['RES_LIFETIME']) *
-                                    discount_factor).sel(renewable_sources=res)
+                     salvage_value += (
+                var['res_units'].sel(steps=step)
+                * param['RES_NOMINAL_CAPACITY']
+                * param['RES_SPECIFIC_INVESTMENT_COST']
+                * (
+                    where(
+                        param['RES_LIFETIME'] - param['RES_EXISTING_YEARS'] - project_duration > 0,
+                        param['RES_LIFETIME'] - param['RES_EXISTING_YEARS']- project_duration,
+                        0
+                    )
+                    / param['RES_LIFETIME']
+                )
+                * discount_factor
+            ).sum('renewable_sources')
 
             if has_battery:
                 salvage_value += (var['battery_units'].sel(steps=step) * 
