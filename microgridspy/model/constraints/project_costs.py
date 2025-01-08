@@ -469,7 +469,7 @@ def add_salvage_value(
         if step == 1:
             
             # RES salvage value calculation
-          salvage_value += (
+            salvage_value += (
                 var['res_units'].sel(steps=step)
                 * param['RES_NOMINAL_CAPACITY']
                 * param['RES_SPECIFIC_INVESTMENT_COST']
@@ -487,27 +487,22 @@ def add_salvage_value(
             if is_brownfield:
                 for res in renewable_sources:
                     # Existing salvage value (brownfield) for each renewable source
-                     salvage_value += (
-                var['res_units'].sel(steps=step)
-                * param['RES_NOMINAL_CAPACITY']
-                * param['RES_SPECIFIC_INVESTMENT_COST']
-                * (
-                    where(
-                        param['RES_LIFETIME'] - param['RES_EXISTING_YEARS'] - project_duration > 0,
-                        param['RES_LIFETIME'] - param['RES_EXISTING_YEARS']- project_duration,
-                        0
-                    )
-                    / param['RES_LIFETIME']
-                )
-                * discount_factor
-            ).sum('renewable_sources')
+                    salvage_value += (
+                        var['res_units'].sel(steps=step)
+                        * param['RES_NOMINAL_CAPACITY']
+                        * param['RES_SPECIFIC_INVESTMENT_COST']
+                        * (
+                            where(
+                                param['RES_LIFETIME'] - param['RES_EXISTING_YEARS'] - project_duration > 0,
+                                param['RES_LIFETIME'] - param['RES_EXISTING_YEARS']- project_duration,
+                                0
+                            )
+                            / param['RES_LIFETIME']
+                        )
+                        * discount_factor
+                    ).sum('renewable_sources')
 
-            if has_battery:
-                salvage_value += (var['battery_units'].sel(steps=step) * 
-                                  param['BATTERY_NOMINAL_CAPACITY'] * param['BATTERY_SPECIFIC_INVESTMENT_COST'] *
-                                  (max(0, param['BATTERY_LIFETIME'] - project_duration) / param['BATTERY_LIFETIME']) *
-                                  discount_factor)
-                
+
                 if is_brownfield:
                     # Existing battery salvage (brownfield)
                     salvage_value += (param['BATTERY_EXISTING_CAPACITY'] * param['BATTERY_SPECIFIC_INVESTMENT_COST'] *
