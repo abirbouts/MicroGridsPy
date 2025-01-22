@@ -1,6 +1,7 @@
 from typing import Dict, List
 
 import xarray as xr
+from xarray import where
 import linopy
 from linopy import Model
 from xarray import where
@@ -73,13 +74,18 @@ def add_investment_cost(
             # Initial Investment Cost
             investment_cost += (var['res_units'].sel(steps=step) * param['RES_NOMINAL_CAPACITY'] * 
                                 param['RES_SPECIFIC_INVESTMENT_COST']).sum('renewable_sources')
-
+            investment_cost += (var['res_inverter_units'].sel(steps=step) * param['RES_INVERTER_NOMINAL_CAPACITY'] * 
+                                param['RES_INVERTER_COST']).sum('renewable_sources')
             if has_battery:
                 investment_cost += (var['battery_units'].sel(steps=step) * param['BATTERY_NOMINAL_CAPACITY'] * 
                                     param['BATTERY_SPECIFIC_INVESTMENT_COST'])
+                investment_cost += (var['battery_inverter_units'].sel(steps=step) * param['BATTERY_INVERTER_NOMINAL_CAPACITY'] *
+                                    param['BATTERY_INVERTER_COST'])
             if has_generator:
                 investment_cost += (var['generator_units'].sel(steps=step) * 
                                     param['GENERATOR_NOMINAL_CAPACITY'] * param['GENERATOR_SPECIFIC_INVESTMENT_COST']).sum('generator_types')
+                investment_cost += (var['generator_rectifier_units'].sel(steps=step) * param['GENERATOR_RECTIFIER_NOMINAL_CAPACITY'] *
+                                    param['GENERATOR_RECTIFIER_COST']).sum('generator_types')
         else:
             # Subsequent Investment Cost
             investment_cost += ((var['res_units'].sel(steps=step) - var['res_units'].sel(steps=step - 1)) * 
@@ -100,6 +106,7 @@ def add_investment_cost(
         start_year: int = years[0]
         grid_connection_discount = 1 / ((1 + param['DISCOUNT_RATE']) ** (year_grid_connection - start_year))
         investment_cost += (param['GRID_DISTANCE'] * param['GRID_CONNECTION_COST'] * grid_connection_discount)
+        investment_cost += (var['grid_transformer_size'] * param['GRID_TRANSFORMER_COST'])
     
     try:
         # Add constraint

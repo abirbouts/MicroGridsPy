@@ -13,7 +13,7 @@ from microgridspy.post_process.cost_calculations import (
 from microgridspy.post_process.energy_calculations import (
     calculate_energy_usage,
     calculate_renewable_penetration)
-from microgridspy.post_process.data_retrieval import get_sizing_results
+from microgridspy.post_process.data_retrieval import get_sizing_results, get_transformer_sizing_results
 from microgridspy.post_process.plots import (
     costs_pie_chart,
     create_energy_usage_pie_chart,
@@ -240,6 +240,10 @@ def plots_dashboard():
     fig['System Sizing'] = sizing_fig
     st.pyplot(sizing_fig)
     st.table(sizing_df)
+
+    transformer_sizing_df = get_transformer_sizing_results(model)
+    st.write("Transformer Sizing Results")
+    st.table(transformer_sizing_df)
     
     # Energy Balance Visualization
     # --------------------------------

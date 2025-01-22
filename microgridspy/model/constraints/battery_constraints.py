@@ -143,11 +143,11 @@ def add_battery_flow_constraints(model: Model, settings: ProjectParameters, sets
     for year in sets.years.values:
         step = years_steps_tuples[year - years[0]][1]
         model.add_constraints(
-            var['battery_inflow'].sel(years=year) <= var['battery_max_charge_power'].sel(steps=step) * param['DELTA_TIME'],
+            var['battery_inflow'].sel(years=year) <= (var['battery_max_charge_power'].sel(steps=step) * param['DELTA_TIME']) / param['BATTERY_CHARGE_EFFICIENCY'],
             name=f"Battery Upper Inflow Constraint - Year {year}")
 
         model.add_constraints(
-            var['battery_outflow'].sel(years=year) <= var['battery_max_discharge_power'].sel(steps=step) * param['DELTA_TIME'],
+            var['battery_outflow'].sel(years=year) <= (var['battery_max_discharge_power'].sel(steps=step) * param['DELTA_TIME']) * param['BATTERY_DISCHARGE_EFFICIENCY'],
             name=f"Battery Upper Outflow Constraint - Year {year}")
 
     model.add_constraints(var['battery_outflow'] <= param['DEMAND'], name="Battery Maximum Outflow Constraint")

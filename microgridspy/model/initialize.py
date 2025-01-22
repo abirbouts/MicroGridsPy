@@ -252,13 +252,37 @@ def initialize_res_parameters(data: ProjectParameters, sets: xr.Dataset) -> xr.D
             coords={'renewable_sources': renewable_sources},
             name='Renewables Nominal Capacity'),
 
+        # Directly connected to Battery
+        'RES_CONNECTED_TO_BATTERY': xr.DataArray(
+            [conn_type == 'Connected with the same Inverter as the Battery to the Microgrid' for conn_type in data.renewables_params.res_connection_types],
+            dims=['renewable_sources'],
+            coords={'renewable_sources': renewable_sources},
+            name='Renewables Connected to Battery'),
+
         # Inverter Efficiency (fraction)
         'RES_INVERTER_EFFICIENCY': xr.DataArray(
             data.renewables_params.res_inverter_efficiency,
             dims=['renewable_sources'],
             coords={'renewable_sources': renewable_sources},
             name='Renewables Inverter Efficiency (%)'),
+        
+        'RES_INVERTER_NOMINAL_CAPACITY': xr.DataArray(
+            data.renewables_params.res_inverter_nominal_capacity,
+            dims=['renewable_sources'],
+            coords={'renewable_sources': renewable_sources},
+            name='Renewables Inverter Nominal Capacity (W)'),
+        
+        'RES_INVERTER_COST': xr.DataArray(
+            data.renewables_params.res_inverter_cost,
+            dims=['renewable_sources'],
+            coords={'renewable_sources': renewable_sources},
+            name='Renewables Inverter Cost (USD)'),
 
+        'RES_INVERTER_LIFETIME': xr.DataArray(
+            data.renewables_params.res_inverter_lifetime,
+            dims=['renewable_sources'],
+            coords={'renewable_sources': renewable_sources},
+            name='Renewables Inverter Lifetime (years)'),
         # Investment cost per unit of capacity installed (USD/W)
         'RES_SPECIFIC_INVESTMENT_COST': xr.DataArray(
             data.renewables_params.res_specific_investment_cost,
@@ -302,7 +326,19 @@ def initialize_res_parameters(data: ProjectParameters, sets: xr.Dataset) -> xr.D
             dims=['renewable_sources'],
             coords={'renewable_sources': renewable_sources},
             name='Renewable Existing Years')
-
+        
+        res_parameters['RES_INVERTER_EXISTING_CAPACITY'] = xr.DataArray(
+            data.renewables_params.res_inverter_existing_capacity,
+            dims=['renewable_sources'],
+            coords={'renewable_sources': renewable_sources},
+            name='Renewable Existing Capacity (W)')
+        
+        res_parameters['RES_INVERTER_EXISTING_YEARS'] = xr.DataArray(
+            data.renewables_params.res_inverter_existing_years,
+            dims=['renewable_sources'],
+            coords={'renewable_sources': renewable_sources},
+            name='Renewable Existing Years')
+        
     # Specific Area (m^2)
     if data.project_settings.land_availability > 0:
         res_parameters['RES_SPECIFIC_AREA'] = xr.DataArray(
@@ -337,6 +373,31 @@ def initialize_battery_parameters(data: ProjectParameters, time_series: xr.Datas
             data.battery_params.battery_specific_om_cost,
             dims=[],
             name='Specific O&M Cost of the Battery Bank (%)'),
+
+        'BATTERY_INVERTER_EFFICIENCY_DC_AC': xr.DataArray(
+            data.battery_params.battery_inverter_efficiency_dc_ac,
+            dims=[],
+            name='Inverter Efficiency DC-AC of the Battery (%)'),
+
+        'BATTERY_INVERTER_EFFICIENCY_AC_DC': xr.DataArray(
+            data.battery_params.battery_inverter_efficiency_ac_dc,
+            dims=[],
+            name='Inverter Efficiency AC-DC of the Battery (%)'),
+
+        'BATTERY_INVERTER_NOMINAL_CAPACITY': xr.DataArray(
+            data.battery_params.battery_inverter_nominal_capacity,
+            dims=[],
+            name='Inverter Nominal Capacity of the Battery (W)'),
+        
+        'BATTERY_INVERTER_COST': xr.DataArray(
+            data.battery_params.battery_inverter_cost,
+            dims=[],
+            name='Inverter Cost of the Battery (USD)'),
+
+        'BATTERY_INVERTER_LIFETIME': xr.DataArray(
+            data.battery_params.battery_inverter_lifetime, 
+            dims=[],
+            name='Inverter Lifetime of the Battery (years)'),
 
         'BATTERY_DISCHARGE_EFFICIENCY': xr.DataArray(
             data.battery_params.battery_discharge_battery_efficiency,
@@ -381,7 +442,12 @@ def initialize_battery_parameters(data: ProjectParameters, time_series: xr.Datas
         'BATTERY_INITIAL_SOC': xr.DataArray(
             data.battery_params.battery_initial_soc,
             dims=[],
-            name='Battery Initial State of Charge'),}
+            name='Battery Initial State of Charge'),
+
+        'ONE': xr.DataArray(
+            1,
+            dims=[],
+            name='Ones'),}
 
     if data.advanced_settings.multiobjective_optimization:
         battery_parameters['BATTERY_UNIT_CO2_EMISSION'] = xr.DataArray(
@@ -399,6 +465,14 @@ def initialize_battery_parameters(data: ProjectParameters, time_series: xr.Datas
             data.battery_params.battery_existing_years,
             dims=[],
             name='Battery Existing Years (years)')
+        battery_parameters['BATTERY_INVERTER_EXISTING_CAPACITY'] = xr.DataArray(
+            data.battery_params.battery_existing_inverter_capacity,
+            dims=[],
+            name='Battery Inverter Existing Capacity (Wh)')
+        battery_parameters['BATTERY_INVERTER_EXISTING_YEARS'] = xr.DataArray(
+            data.battery_params.battery_inverter_existing_years,
+            dims=[],
+            name='Battery Inverter Existing Years (years)')
     
     # Battery Independence
     if data.project_settings.battery_independence > 0:
