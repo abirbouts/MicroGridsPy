@@ -88,9 +88,9 @@ def add_battery_variables(model: Model, settings: ProjectParameters, sets: xr.Da
     battery_variables = {}
 
     # Installed capacity [W*period] for battery bank in each investment step
-    if settings.advanced_settings.milp_formulation:
+    #if settings.advanced_settings.milp_formulation:
         # Boolean variable to determine single flow (inflow or outflow)
-        battery_variables['single_flow_bess'] = model.add_variables(binary=True, coords=[sets.scenarios, sets.years, sets.periods], name='Binary for BESS Single Flow')
+        #battery_variables['single_flow_bess'] = model.add_variables(binary=True, coords=[sets.scenarios, sets.years, sets.periods], name='Binary for BESS Single Flow')
     
     if settings.advanced_settings.unit_commitment:
         # MILP Formulation: integer units

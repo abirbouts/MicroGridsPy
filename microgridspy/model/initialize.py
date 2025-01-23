@@ -95,7 +95,7 @@ def initialize_resource(sets: xr.Dataset) -> xr.DataArray:
     num_periods = len(sets.periods)
 
     # Reshape the data to match other variables' dimension order
-    resource_data = resource_df.values.reshape(num_scenarios, num_res_sources, num_periods)
+    resource_data = resource_df.values.flatten(order='F').reshape(num_scenarios, num_res_sources, num_periods)
 
     # Create xarray DataArray with consistent dimension order
     return xr.DataArray(
@@ -499,6 +499,30 @@ def initialize_generator_parameters(data: ProjectParameters, sets: xr.Dataset) -
             dims=['generator_types'],
             coords={'generator_types': generator_types},
             name='Generators Nominal Capacity'),
+
+        'GENERATOR_RECTIFIER_EFFICIENCY': xr.DataArray(
+            data.generator_params.gen_rectifier_efficiency,
+            dims=['generator_types'],
+            coords={'generator_types': generator_types},
+            name='Generator Rectifier Efficiency'),
+
+        'GENERATOR_RECTIFIER_NOMINAL_CAPACITY': xr.DataArray(
+            data.generator_params.gen_rectifier_nominal_capacity,
+            dims=['generator_types'],
+            coords={'generator_types': generator_types},
+            name='Generator Rectifier Nominal Capacity'),
+        
+        'GENERATOR_RECTIFIER_COST': xr.DataArray(
+            data.generator_params.gen_rectifier_cost,  
+            dims=['generator_types'],
+            coords={'generator_types': generator_types},
+            name='Generator Rectifier Cost'),
+
+        'GENERATOR_RECTIFIER_LIFETIME': xr.DataArray(
+            data.generator_params.gen_rectifier_lifetime,
+            dims=['generator_types'],
+            coords={'generator_types': generator_types},
+            name='Generator Rectifier Lifetime'),
 
         'GENERATOR_SPECIFIC_INVESTMENT_COST': xr.DataArray(
             data.generator_params.gen_specific_investment_cost,

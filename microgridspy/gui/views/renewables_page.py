@@ -132,8 +132,10 @@ def update_parameters(i: int, res_name: str, time_horizon: int, brownfield: bool
                     key=f"res_inverter_cost_{i}")
             else:
                 st.session_state.res_inverter_efficiency[i] = 1.0
-                
+                st.session_state.res_inverter_nominal_capacity[i] = 1.0 # Does not matter as it is not used in the model
                 st.session_state.res_inverter_cost[i] = 0.0
+
+            st.write(st.session_state.res_inverter_nominal_capacity)
 
     else:
         if st.session_state.res_current_types[i] == "Direct Current":
@@ -268,7 +270,7 @@ def renewables_technology() -> None:
 
     for key in keys:
         ensure_list_length(key, res_sources)
-
+    st.write(st.session_state.res_inverter_nominal_capacity)
     # Display parameters for each renewable source
     for i in range(res_sources):
         update_parameters(i, res_names[i], time_horizon, brownfield, land_availability, currency)

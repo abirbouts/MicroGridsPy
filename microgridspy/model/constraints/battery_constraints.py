@@ -9,10 +9,11 @@ def add_battery_constraints(model: Model, settings: ProjectParameters, sets: xr.
     """Add constraints for battery energy storage."""
     add_battery_state_of_charge_constraints(model, settings, sets, param, var)
 
-    if settings.advanced_settings.milp_formulation:
+    '''if settings.advanced_settings.milp_formulation:
         add_battery_single_flow_constraints(model, settings, sets, param, var)
     else:
-        add_battery_flow_constraints(model, settings, sets, param, var)
+    '''    
+    add_battery_flow_constraints(model, settings, sets, param, var)
 
     if settings.advanced_settings.capacity_expansion:
         add_battery_capacity_expansion_constraints(model, settings, sets, param, var)
