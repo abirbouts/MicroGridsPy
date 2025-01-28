@@ -1,6 +1,9 @@
 import streamlit as st
 from config.path_manager import PathManager
-from microgridspy.gui.utils import initialize_session_state
+import pandas as pd
+import os
+import matplotlib.pyplot as plt
+from microgridspy.gui.utils import initialize_session_state, generate_flow_chart
 
 def ensure_list_length(key: str, length: int) -> None:
     """Ensure the list in session state has the required length."""
@@ -8,6 +11,83 @@ def ensure_list_length(key: str, length: int) -> None:
         st.session_state[key] = [0.0] * length
     else:
         st.session_state[key].extend([0.0] * (length - len(st.session_state[key])))
+
+def load_cost_df(res_names, currency) -> pd.DataFrame:
+    """
+    Load or create a DataFrame for renewable energy costs with specified columns,
+    ensuring the columns are in the same order as in res_names.
+    """
+    res_cost_file_path = PathManager.RES_COST_FILE_PATH
+    num_steps = st.session_state.num_steps
+    
+    # Define relevant columns in the order of res_names
+    relevant_columns = [f"{name} Investment Cost [{currency}/W]" for name in res_names]
+
+    # Define the correct index for num_steps
+    correct_index = [f"Investment Step {i}" for i in range(1, num_steps + 1)]
+
+    if os.path.exists(res_cost_file_path):
+        # Load the CSV file
+        res_cost_df = pd.read_csv(res_cost_file_path, index_col=0)
+
+        # Ensure the index is consistent
+        res_cost_df.index = res_cost_df.index.astype(str)
+
+        # Identify rows that are missing and create them with zeros
+        missing_index = [i for i in correct_index if i not in res_cost_df.index]
+        if missing_index:
+            missing_rows = pd.DataFrame({col: 0.0 for col in res_cost_df.columns}, index=missing_index)
+            res_cost_df = pd.concat([res_cost_df, missing_rows])
+
+        # Reindex to match the correct order and preserve existing data
+        res_cost_df = res_cost_df.reindex(correct_index)
+
+        # Ensure all relevant columns exist
+        for col in relevant_columns:
+            if col not in res_cost_df.columns:
+                res_cost_df[col] = 0.0
+
+        # Reorder columns to match relevant_columns order
+        res_cost_df = res_cost_df.loc[correct_index, relevant_columns]
+
+        return res_cost_df
+
+    else:
+        # Create a new DataFrame with zeros if the file doesn't exist
+        data = {col: [0.0] * num_steps for col in relevant_columns}
+        return pd.DataFrame(data, index=correct_index)
+
+def upload_cost_data(cost_df, res_name, currency) -> None:
+    # Create dataframe that can be adjusted by the user
+    edited_df = st.data_editor(
+        cost_df[[f'{res_name} Investment Cost [{currency}/W]']],
+        hide_index=False
+    )
+
+    return edited_df
+
+def show_res_cost(cost_df, res_names, currency="USD") -> None:
+    """
+    Display renewable energy cost data as a line plot.
+    """
+    st.write("### Renewable Energy Cost Data")
+    
+    # Create a line plot using Matplotlib
+    fig, ax = plt.subplots(figsize=(10, 6))
+    
+    for res_name in res_names:
+        column_name = f"{res_name} Investment Cost [{currency}/W]"
+        if column_name in cost_df.columns:
+            ax.plot(cost_df.index, cost_df[column_name], marker='o', label=res_name)
+    
+    ax.set_ylabel(f'Cost [{currency}/W]')
+    ax.set_title('Cost Variation Over Investment Steps')
+    ax.legend()
+    ax.grid(True)
+    ax.set_ylim(bottom=0)  # Ensure y-axis starts at 0
+    
+    # Display the plot in Streamlit
+    st.pyplot(fig)
 
 def update_parameters(i: int, res_name: str, time_horizon: int, brownfield: bool, land_availability: float, currency: str) -> None:
     """Update renewable parameters for the given index."""
@@ -36,13 +116,13 @@ def update_parameters(i: int, res_name: str, time_horizon: int, brownfield: bool
     if brownfield:
         st.session_state.res_lifetime[i] = st.number_input(
             f"Lifetime [years]", 
-            value=float(st.session_state.res_lifetime[i]), 
+            value=int(st.session_state.res_lifetime[i]), 
             key=f"lifetime_{i}")
     else:
         st.session_state.res_lifetime[i] = st.number_input(
             f"Lifetime [years]", 
-            min_value=float(time_horizon), 
-            value=max(float(time_horizon), float(st.session_state.res_lifetime[i])), 
+            min_value=int(time_horizon), 
+            value=max(int(time_horizon), int(st.session_state.res_lifetime[i])), 
             key=f"lifetime_{i}")
     
     st.session_state.res_unit_co2_emission[i] = st.number_input(
@@ -134,9 +214,6 @@ def update_parameters(i: int, res_name: str, time_horizon: int, brownfield: bool
                 st.session_state.res_inverter_efficiency[i] = 1.0
                 st.session_state.res_inverter_nominal_capacity[i] = 1.0 # Does not matter as it is not used in the model
                 st.session_state.res_inverter_cost[i] = 0.0
-
-            st.write(st.session_state.res_inverter_nominal_capacity)
-
     else:
         if st.session_state.res_current_types[i] == "Direct Current":
             st.session_state.res_inverter_efficiency[i] = 1.0
@@ -177,9 +254,9 @@ def update_parameters(i: int, res_name: str, time_horizon: int, brownfield: bool
         if res_capacity > 0:
             st.session_state.res_existing_years[i] = st.number_input(
                 f"Existing Years [years]", 
-                min_value=0.0,
-                max_value=float(st.session_state.res_lifetime[i] - 1),
-                value=float(st.session_state.res_existing_years[i]), 
+                min_value=0,
+                max_value=int(st.session_state.res_lifetime[i] - 1),
+                value=int(st.session_state.res_existing_years[i]), 
                 key=f"exist_years_{i}")
             
         if st.session_state.res_connection_types[i] == "Connected with a seperate Inverter to the Microgrid":
@@ -195,9 +272,9 @@ def update_parameters(i: int, res_name: str, time_horizon: int, brownfield: bool
             if inverter_capacity > 0:
                 st.session_state.res_inverter_existing_years[i] = st.number_input(
                     f"Existing Years Inverter [years]", 
-                    min_value=0.0,
-                    max_value=float(st.session_state.res_inverter_lifetime[i] - 1),
-                    value=float(st.session_state.res_inverter_existing_years[i]), 
+                    min_value=0,
+                    max_value=int(st.session_state.res_inverter_lifetime[i] - 1),
+                    value=int(st.session_state.res_inverter_existing_years[i]), 
                     key=f"inverter_exist_years_{i}")
                 
         elif st.session_state.grid_type == "Alternating Current" and st.session_state.res_connection_types[i] == "Connected with a AC-AC Converter to the Microgrid":
@@ -213,9 +290,9 @@ def update_parameters(i: int, res_name: str, time_horizon: int, brownfield: bool
             if inverter_capacity > 0:
                 st.session_state.res_inverter_existing_years[i] = st.number_input(
                     f"Existing Years Converter [years]", 
-                    min_value=0.0,
-                    max_value=float(st.session_state.res_inverter_lifetime[i] - 1),
-                    value=float(st.session_state.res_inverter_existing_years[i]), 
+                    min_value=0,
+                    max_value=int(st.session_state.res_inverter_lifetime[i] - 1),
+                    value=int(st.session_state.res_inverter_existing_years[i]), 
                     key=f"inverter_exist_years_{i}")
                 
         elif st.session_state.grid_type == "Direct Current" and st.session_state.res_current_types[i] == "Alternating Current":
@@ -231,9 +308,9 @@ def update_parameters(i: int, res_name: str, time_horizon: int, brownfield: bool
             if inverter_capacity > 0:
                 st.session_state.res_inverter_existing_years[i] = st.number_input(
                     f"Existing Years Rectifier [years]", 
-                    min_value=0.0,
-                    max_value=float(st.session_state.res_inverter_lifetime[i] - 1),
-                    value=float(st.session_state.res_inverter_existing_years[i]), 
+                    min_value=0,
+                    max_value=int(st.session_state.res_inverter_lifetime[i] - 1),
+                    value=int(st.session_state.res_inverter_existing_years[i]), 
                     key=f"inverter_exist_years_{i}")
 
 def renewables_technology() -> None:
@@ -270,11 +347,23 @@ def renewables_technology() -> None:
 
     for key in keys:
         ensure_list_length(key, res_sources)
-    st.write(st.session_state.res_inverter_nominal_capacity)
+
+    # Load cost dataframe and only keep the relevant columns
+    cost_df = load_cost_df(res_names=res_names, currency=currency)
+
     # Display parameters for each renewable source
     for i in range(res_sources):
         update_parameters(i, res_names[i], time_horizon, brownfield, land_availability, currency)
+        edited_df = upload_cost_data(cost_df, res_names[i], currency)
+        if st.button(f"Save investment cost data for {res_names[i]}"):
+            res_cost_file_path = PathManager.RES_COST_FILE_PATH
+            cost_df[f'{res_names[i]} Investment Cost [{currency}/W]'] = edited_df[f'{res_names[i]} Investment Cost [{currency}/W]']
+            cost_df.to_csv(res_cost_file_path, index=True)
+            st.rerun()
         st.markdown("---")  # Add a separator between renewable sources
+    show_res_cost(cost_df, res_names)
+
+    generate_flow_chart(res_names)
 
     col1, col2 = st.columns([1, 8])
     with col1:

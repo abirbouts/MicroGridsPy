@@ -10,6 +10,8 @@ from microgridspy.model.utils import (
     operate_unitary_battery_replacement_cost,
     operate_delta_time,
     operate_min_capacity,
+    initialize_res_investment_cost,
+    initialize_battery_investment_cost,
     initialize_fuel_specific_cost,
     operate_marginal_cost,
     operate_start_cost
@@ -285,9 +287,9 @@ def initialize_res_parameters(data: ProjectParameters, sets: xr.Dataset) -> xr.D
             name='Renewables Inverter Lifetime (years)'),
         # Investment cost per unit of capacity installed (USD/W)
         'RES_SPECIFIC_INVESTMENT_COST': xr.DataArray(
-            data.renewables_params.res_specific_investment_cost,
-            dims=['renewable_sources'],
-            coords={'renewable_sources': renewable_sources},
+            initialize_res_investment_cost(renewable_sources, data.advanced_settings.num_steps),
+            dims=['renewable_sources', 'steps'],
+            coords={'renewable_sources': renewable_sources, 'steps': sets.steps.values},
             name='Renewables Specific Investment Cost (USD/W)'),
 
         # O&M cost as % of investment cost (fraction)
@@ -360,8 +362,9 @@ def initialize_battery_parameters(data: ProjectParameters, time_series: xr.Datas
             name='Battery Nominal Capacity'),
 
         'BATTERY_SPECIFIC_INVESTMENT_COST': xr.DataArray(
-            data.battery_params.battery_specific_investment_cost,
-            dims=[],
+            initialize_battery_investment_cost(data.advanced_settings.num_steps),
+            dims=['steps'],
+            coords={'steps': sets.steps.values},
             name='Specific Investment Cost of the Battery Bank (USD/Wh)'),
 
         'BATTERY_SPECIFIC_ELECTRONIC_INVESTMENT_COST': xr.DataArray(
@@ -435,10 +438,11 @@ def initialize_battery_parameters(data: ProjectParameters, time_series: xr.Datas
             name='Average Battery Lifetime Expectancy (years)'),
 
         'UNITARY_BATTERY_REPLACEMENT_COST': xr.DataArray(
-            operate_unitary_battery_replacement_cost(data),
-            dims=[],
+            operate_unitary_battery_replacement_cost(data, data.advanced_settings.num_steps),
+            dims=['steps'],
+            coords={'steps': sets.steps.values},
             name='Unitary Battery Replacement Cost'),
-
+        
         'BATTERY_INITIAL_SOC': xr.DataArray(
             data.battery_params.battery_initial_soc,
             dims=[],

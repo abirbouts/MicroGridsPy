@@ -146,6 +146,7 @@ def generator_technology() -> None:
             st.session_state.gen_specific_investment_cost[i] = st.number_input(
                 f"Specific Investment Cost of {gen_name} [{currency}/W]", 
                 value=st.session_state.gen_specific_investment_cost[i],
+                step=0.01,
                 help="The initial investment cost per watt of installed capacity.")
 
             st.session_state.gen_specific_om_cost[i] = st.number_input(

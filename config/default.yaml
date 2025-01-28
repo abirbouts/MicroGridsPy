@@ -44,9 +44,9 @@ resource_assessment:
   res_sources: 1
   res_names: ["Solar PV"]
   res_nominal_capacity: [1000] #W
-  location: "Nairobi, Kenya"
-  lat: -11.56567
-  lon: 34.23567
+  location: "Faza, Kenya"
+  lat: 2.06
+  lon: 41.11
   time_zone: 2
   turbine_type: "Horizontal Axis"
   turbine_model: "NPS100c-21"
@@ -117,7 +117,7 @@ battery_params:
   battery_chemistry: "LFP"
   battery_nominal_capacity: 1000.0 #Wh
   battery_specific_investment_cost: 0.15 #USD/Wh
-  battery_specific_electronic_investment_cost: 0.05 #USD/Wh
+  battery_specific_electronic_investment_cost: 0.30 #fraction
   battery_specific_om_cost: 0.06 #% of investment cost
   battery_inverter_efficiency_dc_ac: 1.0 #fraction
   battery_inverter_efficiency_ac_dc: 1.0 #fraction
@@ -178,6 +178,4 @@ grid_params:
   national_grid_specific_co2_emissions : 0.1495 #kgCO2/kWh
   grid_availability_simulation: false
   grid_average_number_outages : 43.48 #outages/year
-  grid_average_outage_duration : 455 #hours
-  
-  
+  grid_average_outage_duration : 455 #hours  
