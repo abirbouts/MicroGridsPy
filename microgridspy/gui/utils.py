@@ -109,7 +109,7 @@ def generate_flow_chart(res_names: list) -> None:
         idx_connected_to_battery = [idx for idx, connection_type in enumerate(st.session_state.res_connection_types) if connection_type == "Connected with the same Inverter as the Battery to the Microgrid"]
         idx_not_connected_to_battery = [idx for idx, connection_type in enumerate(st.session_state.res_connection_types) if connection_type != "Connected with the same Inverter as the Battery to the Microgrid"]
         if idx_connected_to_battery:
-            mermaid_code += "subgraph Shared_System [DC System]\n"
+            mermaid_code += "subgraph Shared_System [DC Subystem]\n"
             for idx in idx_connected_to_battery:
                 mermaid_code += f"{res_names[idx].replace(' ', '_')} --> DC_System\n"
             mermaid_code += "Battery <--> DC_System\n"
@@ -161,7 +161,7 @@ def generate_flow_chart(res_names: list) -> None:
                 mermaid_code += f"{res_names[idx].replace(' ', '_')} --> Microgrid\n"
             elif st.session_state.res_current_types[idx] == "Alternating Current":
                 mermaid_code += f"{res_names[idx].replace(' ', '_')} --> Rectifier_{res_names[idx].replace(' ', '_')}\n"
-                mermaid_code += f"Rectifier_Converter_{res_names[idx].replace(' ', '_')} --> Microgrid\n"
+                mermaid_code += f"Rectifier_{res_names[idx].replace(' ', '_')} --> Microgrid\n"
         if has_battery:
             mermaid_code += "Battery <--> Microgrid\n"
         if has_generator:
