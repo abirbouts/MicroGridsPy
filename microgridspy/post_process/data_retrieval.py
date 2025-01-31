@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import streamlit as st
 
 from microgridspy.model.model import Model
 
@@ -99,7 +100,7 @@ def get_transformer_sizing_results(model) -> pd.DataFrame:
     inverter_units_res = model.get_solution_variable('Units of Inverters for Renewables')
     if inverter_units_res is not None:
         res_nominal_inverter_capacity = model.parameters['RES_INVERTER_NOMINAL_CAPACITY']
-        res_existing_inverter_capacity = model.parameters.get('RES_EXISTING_INVERTER_CAPACITY', 0)
+        res_existing_inverter_capacity = model.parameters.get('RES_EXISTING_INVERTER_CAPACITY')
         connected_to_battery = model.parameters.get('RES_CONNECTED_TO_BATTERY')
         for source in inverter_units_res.renewable_sources.values:
             if connected_to_battery.sel(renewable_sources=source).values:
@@ -107,7 +108,7 @@ def get_transformer_sizing_results(model) -> pd.DataFrame:
             categories.append(f"Renewable Inverter ({source})")
             capacities.append((res_nominal_inverter_capacity.sel(renewable_sources=source).values * inverter_units_res.sel(renewable_sources=source).values) / 1000)  # kW
             existing_capacities.append(
-                res_existing_inverter_capacity.sel(renewable_sources=source).values / 1000 if is_brownfield else 0
+                res_existing_inverter_capacity.sel(renewable_sources=source).values / 1000 if is_brownfield and res_existing_inverter_capacity else 0
             )
             capacity_units.append('kW')
 
@@ -128,9 +129,9 @@ def get_transformer_sizing_results(model) -> pd.DataFrame:
     # Generator rectifiers (kW)
     if model.has_generator:
         rectifier_units_gen = model.get_solution_variable('Units of Rectifiers for Generators')
-        if rectifier_units_gen is not None:
+        if st.session_state.grid_type == 'Direct Current':
             gen_nominal_rectifier_capacity = model.parameters['GENERATOR_RECTIFIER_NOMINAL_CAPACITY']
-            gen_existing_rectifier_capacity = model.parameters.get('GENERATOR_EXISTING_RECTIFIER_CAPACITY', 0)
+            gen_existing_rectifier_capacity = model.parameters.get('GENERATOR_EXISTING_RECTIFIER_CAPACITY')
             for gen_type in rectifier_units_gen.generator_types.values:
                 categories.append(f"Generator Rectifier ({gen_type})")
                 capacities.append(gen_nominal_rectifier_capacity.sel(generator_types=gen_type).values * (rectifier_units_gen.sel(generator_types=gen_type).values) / 1000)  # kW

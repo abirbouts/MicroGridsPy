@@ -4,19 +4,6 @@ from linopy import Model
 from microgridspy.model.parameters import ProjectParameters
 from typing import Dict
 
-def add_transformation_constraints(
-    model: Model, 
-    settings: ProjectParameters, 
-    sets: xr.Dataset, 
-    param: xr.Dataset, 
-    var: Dict[str, linopy.Variable],
-    has_battery: bool,
-    has_generator: bool,
-    has_grid_connection: bool) -> None:
-    """Add constraints for inverters, rectifiers and transformators."""
-    # Calculate the renewable energy production
-    add_inverter_minimum_size_constraints(model, settings, sets, param, var, has_battery, has_generator, has_grid_connection)
-    
 def add_inverter_minimum_size_constraints(model: Model, 
                                           settings: ProjectParameters, 
                                           sets: xr.Dataset, 
@@ -25,7 +12,7 @@ def add_inverter_minimum_size_constraints(model: Model,
                                           has_battery: bool, 
                                           has_generator: bool, 
                                           has_grid_connection: bool) -> None:
-    
+    """Add constraints for inverters, rectifiers and transformators."""
     years = sets.years.values
     steps = sets.steps.values
     step_duration = settings.advanced_settings.step_duration
@@ -46,9 +33,10 @@ def add_inverter_minimum_size_constraints(model: Model,
                 if lifetime_exceeded is False:
                     inverter_capacity = (param['RES_INVERTER_EXISTING_CAPACITY'] + var['res_inverter_units'].sel(steps=step) * param['RES_INVERTER_NOMINAL_CAPACITY']).sel(renewable_sources=res)
                 else:
-                    inverter_capacity = param['RES_INVERTER_NOMINAL_CAPACITY'].sel(renewable_sources=res)
+                    inverter_capacity = var['res_inverter_units'].sel(steps=step) * param['RES_INVERTER_NOMINAL_CAPACITY'].sel(renewable_sources=res)
             else:
                 inverter_capacity = var['res_inverter_units'].sel(steps=step, renewable_sources=res) * param['RES_INVERTER_NOMINAL_CAPACITY'].sel(renewable_sources=res)
+
             model.add_constraints(
                 (var['res_energy_production'].sel(renewable_sources=res).sel(steps=step)
                 - var['curtailment'].sel(renewable_sources=res).sel(years=year)) <= inverter_capacity,
@@ -63,7 +51,7 @@ def add_inverter_minimum_size_constraints(model: Model,
                     if lifetime_exceeded is False:
                         inverter_capacity = (param['BATTRY_INVERTER_EXISTING_CAPACITY'] + var['battery_inverter_units'].sel(steps=step) * param['BATTERY_INVERTER_NOMINAL_CAPACITY'])
                     else:
-                        inverter_capacity = param['BATTERY_INVERTER_NOMINAL_CAPACITY']
+                        inverter_capacity = var['battery_inverter_units'].sel(steps=step) * param['BATTERY_INVERTER_NOMINAL_CAPACITY']
                 else:
                     inverter_capacity = var['battery_inverter_units'].sel(steps=step) * param['BATTERY_INVERTER_NOMINAL_CAPACITY']
                 if any(param['RES_CONNECTED_TO_BATTERY'].sel(renewable_sources=res).item() for res in sets.renewable_sources.values):
@@ -87,14 +75,14 @@ def add_inverter_minimum_size_constraints(model: Model,
 
         if has_generator:
             for generator in sets.generator_types.values:
-                if is_brownfield:
+                if is_brownfield:   
                     total_age = param['GENERATOR_RECTIFIER_EXISTING_YEARS'].sel(generator_types=generator) + (year - years[0])
                     lifetime_exceeded = total_age > param['GENERATOR_RECTIFIER_LIFETIME'].sel(generator_types=generator)
 
                     if lifetime_exceeded is False:
-                        inverter_capacity = (param['GENERATOR_RECTIFIER_EXISTING_CAPACITY'] + var['generator_rectifier_units'].sel(steps=step) * param['GENERATOR_RECTIFIER_NOMINAL_CAPACITY']).sel(generator_types=generator)
+                        inverter_capacity = (param['GENERATOR_RECTIFIER_EXISTING_CAPACITY'].sel(generator_types=generator) + var['generator_rectifier_units'].sel(generator_types=generator, steps=step) * param['GENERATOR_RECTIFIER_NOMINAL_CAPACITY']).sel(generator_types=generator)
                     else:
-                        inverter_capacity = param['GENERATOR_RECTIFIER_NOMINAL_CAPACITY'].sel(generator_types=generator)
+                        inverter_capacity = var['generator_rectifier_units'].sel(generator_types=generator, steps=step) * param['GENERATOR_RECTIFIER_NOMINAL_CAPACITY'].sel(generator_types=generator)
                 else:
                     inverter_capacity = var['generator_rectifier_units'].sel(generator_types=generator, steps=step) * param['GENERATOR_RECTIFIER_NOMINAL_CAPACITY'].sel(generator_types=generator)
                 model.add_constraints(

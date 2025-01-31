@@ -492,7 +492,7 @@ def add_salvage_value(
             salvage_value += (
                 var['res_units'].sel(steps=step)
                 * param['RES_NOMINAL_CAPACITY']
-                * param['RES_SPECIFIC_INVESTMENT_COST'].sel(steps=step)
+                * param['RES_SPECIFIC_INVESTMENT_COST'].sel(steps=sets.steps.values[-1])
                 * (
                     where(
                         param['RES_LIFETIME'] - project_duration > 0,
@@ -508,9 +508,8 @@ def add_salvage_value(
                 for res in renewable_sources:
                     # Existing salvage value (brownfield) for each renewable source
                     salvage_value += (
-                        var['res_units'].sel(steps=step)
-                        * param['RES_NOMINAL_CAPACITY']
-                        * param['RES_SPECIFIC_INVESTMENT_COST'].sel(steps=step)
+                        param['RES_EXISTING_CAPACITY']
+                        * param['RES_SPECIFIC_INVESTMENT_COST'].sel(steps=sets.steps.values[-1])
                         * (
                             where(
                                 param['RES_LIFETIME'] - param['RES_EXISTING_YEARS'] - project_duration > 0,
@@ -525,7 +524,7 @@ def add_salvage_value(
 
                 if is_brownfield:
                     # Existing battery salvage (brownfield)
-                    salvage_value += (param['BATTERY_EXISTING_CAPACITY'] * param['BATTERY_SPECIFIC_INVESTMENT_COST'].sel(steps=step) *
+                    salvage_value += (param['BATTERY_EXISTING_CAPACITY'] * param['BATTERY_SPECIFIC_INVESTMENT_COST'].sel(steps=sets.steps.values[-1]) *
                                      (max(0, param['BATTERY_LIFETIME'] - param['BATTERY_EXISTING_YEARS'] - project_duration) / param['BATTERY_LIFETIME']) *
                                      discount_factor)
 
@@ -551,7 +550,7 @@ def add_salvage_value(
                 0
             )
             salvage_value += (additional_units * 
-                              param['RES_NOMINAL_CAPACITY'] * param['RES_SPECIFIC_INVESTMENT_COST'].sel(steps=step) *
+                              param['RES_NOMINAL_CAPACITY'] * param['RES_SPECIFIC_INVESTMENT_COST'].sel(steps=sets.steps.values[-1]) *
                               (remaining_lifetime / param['RES_LIFETIME']) *
                               discount_factor).sum('renewable_sources')
 
@@ -559,7 +558,7 @@ def add_salvage_value(
                 additional_battery_units = var['battery_units'].sel(steps=step) - var['battery_units'].sel(steps=step - 1)
                 remaining_battery_lifetime = max(0, param['BATTERY_LIFETIME'] - (project_duration - (step * step_duration)))
                 salvage_value += (additional_battery_units * 
-                                  param['BATTERY_NOMINAL_CAPACITY'] * param['BATTERY_SPECIFIC_INVESTMENT_COST'].sel(steps=step) *
+                                  param['BATTERY_NOMINAL_CAPACITY'] * param['BATTERY_SPECIFIC_INVESTMENT_COST'].sel(steps=sets.steps.values[-1]) *
                                   (remaining_battery_lifetime / param['BATTERY_LIFETIME']) *
                                   discount_factor)
 

@@ -223,6 +223,9 @@ def generator_technology() -> None:
                             max_value=(st.session_state.gen_rectifier_lifetime[i] - 1),
                             value=st.session_state.gen_existing_rectifier_years[i],
                             help="The number of years the existing rectifiers have been in operation.")
+                else:
+                    st.session_state.gen_existing_rectifier_capacity[i] = gen_capacity
+                    st.session_state.gen_existing_rectifier_years[i] = 0
 
             # Variable Fuel Cost
             st.subheader(f"Variable Fuel Cost for {gen_name}")

@@ -268,7 +268,7 @@ def update_parameters(i: int, res_name: str, time_horizon: int, brownfield: bool
                 key=f"exist_inverter_cap_{i}")
 
             # Store the value in W in session_state
-            st.session_state.res_inverter_existing_capacity[i] = res_capacity
+            st.session_state.res_inverter_existing_capacity[i] = inverter_capacity
             if inverter_capacity > 0:
                 st.session_state.res_inverter_existing_years[i] = st.number_input(
                     f"Existing Years Inverter [years]", 
@@ -286,7 +286,7 @@ def update_parameters(i: int, res_name: str, time_horizon: int, brownfield: bool
                 key=f"exist_inverter_cap_{i}")
 
             # Store the value in W in session_state
-            st.session_state.res_inverter_existing_capacity[i] = res_capacity
+            st.session_state.res_inverter_existing_capacity[i] = inverter_capacity
             if inverter_capacity > 0:
                 st.session_state.res_inverter_existing_years[i] = st.number_input(
                     f"Existing Years Converter [years]", 
@@ -304,7 +304,7 @@ def update_parameters(i: int, res_name: str, time_horizon: int, brownfield: bool
                 key=f"exist_inverter_cap_{i}")
 
             # Store the value in W in session_state
-            st.session_state.res_inverter_existing_capacity[i] = res_capacity
+            st.session_state.res_inverter_existing_capacity[i] = inverter_capacity
             if inverter_capacity > 0:
                 st.session_state.res_inverter_existing_years[i] = st.number_input(
                     f"Existing Years Rectifier [years]", 

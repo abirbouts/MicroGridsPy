@@ -159,6 +159,8 @@ df = get_average_appliance_tier(df)
 # Extract column 1 and 2 from sheet "Whole year" without loading the whole xlsx
 initial_year_data_30min = pd.read_excel("FazaCaseStudy\Total 2022.xlsx", sheet_name="Whole year", usecols=[2])
 initial_year_data_30min.rename(columns={"METER READING [kWh]": "2022"}, inplace=True)
+initial_year_data_30min["2022"] = initial_year_data_30min["2022"] * 1000
+
 # Create a new DataFrame with half the length by summing pairs of rows
 initial_year_data = initial_year_data_30min.groupby(initial_year_data_30min.index // 2).sum()
 

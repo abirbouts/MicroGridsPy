@@ -333,13 +333,13 @@ def initialize_res_parameters(data: ProjectParameters, sets: xr.Dataset) -> xr.D
             data.renewables_params.res_inverter_existing_capacity,
             dims=['renewable_sources'],
             coords={'renewable_sources': renewable_sources},
-            name='Renewable Existing Capacity (W)')
+            name='Renewable Inverter Existing Capacity (W)')
         
         res_parameters['RES_INVERTER_EXISTING_YEARS'] = xr.DataArray(
             data.renewables_params.res_inverter_existing_years,
             dims=['renewable_sources'],
             coords={'renewable_sources': renewable_sources},
-            name='Renewable Existing Years')
+            name='Renewable Inverter Existing Years')
         
     # Specific Area (m^2)
     if data.project_settings.land_availability > 0:
@@ -576,6 +576,16 @@ def initialize_generator_parameters(data: ProjectParameters, sets: xr.Dataset) -
             dims=['generator_types'],
             coords={'generator_types': generator_types},
             name='Generator Existing Years (years)')
+        generator_parameters['GENERATOR_RECTIFIER_EXISTING_CAPACITY'] = xr.DataArray(
+            data.generator_params.gen_existing_rectifier_capacity,
+            dims=['generator_types'],
+            coords={'generator_types': generator_types},
+            name='Generator Rectifier Existing Capacity (Wh)')
+        generator_parameters['GENERATOR_RECTIFIER_EXISTING_YEARS'] = xr.DataArray(
+            data.generator_params.gen_existing_rectifier_years,
+            dims=['generator_types'],
+            coords={'generator_types': generator_types},
+            name='Generator Rectifier Existing Years (years)')
 
     if data.advanced_settings.multiobjective_optimization:
         generator_parameters['GENERATOR_UNIT_CO2_EMISSION'] = xr.DataArray(
