@@ -488,8 +488,7 @@ def add_salvage_value(
                 for res in renewable_sources:
                     # Existing salvage value (brownfield) for each renewable source
                     salvage_value += (
-                        var['res_units'].sel(steps=step)
-                        * param['RES_NOMINAL_CAPACITY']
+                        param['RES_EXISTING_CAPACITY']
                         * param['RES_SPECIFIC_INVESTMENT_COST']
                         * (
                             where(
