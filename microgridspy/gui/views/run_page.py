@@ -77,7 +77,7 @@ def update_generator_params(generator_params, gen_types):
         'gen_nominal_efficiency', 'gen_specific_investment_cost',
         'gen_specific_om_cost', 'gen_unit_co2_emission', 'gen_rectifier_efficiency',
         'gen_rectifier_nominal_capacity', 'gen_rectifier_cost', 'gen_rectifier_lifetime', 
-        'gen_existing_rectifier_capacity','gen_existing_rectifier_years','gen_partial_load']
+        'gen_existing_rectifier_capacity','gen_existing_rectifier_years','partial_load']
     
     for field in generator_fields:
         if hasattr(generator_params, field):

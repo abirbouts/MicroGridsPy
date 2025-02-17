@@ -327,7 +327,6 @@ class GeneratorParams(BaseModel):
   gen_rectifier_nominal_capacity: List[float]
   gen_rectifier_lifetime: List[int]
   gen_rectifier_cost: List[float]
-  gen_partial_load: bool
   gen_specific_investment_cost: List[float]
   gen_specific_om_cost: List[float]
   gen_lifetime: List[int]

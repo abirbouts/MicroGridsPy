@@ -77,7 +77,7 @@ def generator_technology() -> None:
         time_horizon = st.session_state.get('time_horizon', 0)
         brownfield = st.session_state.get('brownfield', False)
         unit_commitment = st.session_state.get('unit_commitment', False)
-        milp_formulation = st.session_state.get('advanced_settings', {}).get('milp_formulation', False)
+        milp_formulation = st.session_state.get('milp_formulation', False)
         fuel_cost_df = None
 
         # Number of generator types
@@ -295,6 +295,8 @@ def generator_technology() -> None:
 
 
         # Partial Load Parameters
+        st.write('Milp Formulation:', milp_formulation)
+        st.write('Unit Commitment:', unit_commitment)
         if milp_formulation and unit_commitment:
             st.header("Partial Load Parameters")
             st.session_state.partial_load = st.checkbox("Enable Partial Load", value=st.session_state.partial_load)
