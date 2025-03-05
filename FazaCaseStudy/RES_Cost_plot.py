@@ -25,8 +25,8 @@ colors = {
 }
 
 # Load NREL data from CSV
-resource = 'wind'  # Resource type (solar, battery, wind)
-initial_price_kenya = 4042  # Initial cost in Kenya (USD/kW or USD/kWh) in the first year of the data
+resource = 'battery'  # Resource type (solar, battery, wind)
+initial_price_kenya = 160  # Initial cost in Kenya (USD/kW or USD/kWh) in the first year of the data
 nrel_data = pd.read_csv(f'FazaCaseStudy\\nrel_{resource}_cost.csv')
 
 # Get initial cost in NREL data (first year, first scenario)
@@ -69,5 +69,5 @@ plt.grid(True, which='both', linestyle='--', linewidth=0.7, alpha=0.7)
 
 # Save and show plot
 plt.tight_layout()
-plt.savefig(f'FazaCaseStudy\\{resource}_cost.png', bbox_inches='tight', facecolor="white", edgecolor="white")
+plt.savefig(f'FazaCaseStudy\\plots\\{resource}_cost.png', bbox_inches='tight', facecolor="white", edgecolor="white")
 

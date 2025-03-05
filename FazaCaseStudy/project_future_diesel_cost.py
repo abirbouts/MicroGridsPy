@@ -85,7 +85,7 @@ df_historical = df_historical.rename(columns={"Diesel Price (USD)": "Diesel Pric
 df_combined = pd.merge(df_historical, df_future, on="Year", how="outer").sort_values("Year")
 
 # Save to CSV
-df_combined.to_csv('FazaCaseStudy\\diesel_price_projections.csv', index=False)
+df_combined.to_csv('FazaCaseStudy\\results\\diesel_price_projections.csv', index=False)
 
 # Plot the results
 plt.figure(figsize=(12, 6))
@@ -113,4 +113,4 @@ plt.grid(True, which='both', linestyle='--', linewidth=0.7, alpha=0.7)
 
 # Save and show the plot
 plt.tight_layout()
-plt.savefig(f'FazaCaseStudy\\diesel_price.png', bbox_inches='tight', facecolor="white", edgecolor="white")
+plt.savefig(f'FazaCaseStudy\\plots\\diesel_price.png', bbox_inches='tight', facecolor="white", edgecolor="white")

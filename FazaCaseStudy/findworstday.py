@@ -1,6 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import datetime
+import os
 
 resource = "Solar PV"
 
@@ -22,13 +23,8 @@ plt.rcParams.update({
 
 # Function to find daily energy totals
 def get_daily_energy(csv_file, period_col='Periods', energy_col=resource):
-    # Load CSV data
     df = pd.read_csv(csv_file)
-
-    # Assuming periods start at 1 AM on January 1st
-    # Calculate the day number for each period
     df['Day'] = ((df[period_col] - 1) // 24) + 1
-
     return df
 
 # Function to convert day number to date (without year)
@@ -37,8 +33,7 @@ def day_to_date(day_num):
     target_date = base_date + datetime.timedelta(days=int(day_num) - 1)  # Convert to int
     return target_date.strftime('%d %b')
 
-# Example usage
-# Replace file paths with your actual CSV file paths
+
 if __name__ == '__main__':
     csv_file1 = 'FazaCaseStudy\\Resources Availability Nasa.csv'
     csv_file2 = 'FazaCaseStudy\\Resources Availability PVGIS.csv'
@@ -94,7 +89,9 @@ if __name__ == '__main__':
 
     plt.grid(True)
     plt.tight_layout()
-    plt.savefig("FazaCaseStudy/solarpv_nasa_vs_pvgis.png", bbox_inches='tight', facecolor="white", edgecolor="white")
+    output_dir = f'FazaCaseStudy//plots'
+    os.makedirs(output_dir, exist_ok=True)
+    plt.savefig("FazaCaseStudy/plots/solarpv_nasa_vs_pvgis.png", bbox_inches='tight', facecolor="white", edgecolor="white")
     plt.show()
 
     # Plotting best days (hourly data)

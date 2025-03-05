@@ -185,7 +185,6 @@ for comparison_name, scenario_group in comparisons.items():
                             all_labels.append(curtail_col)
                             all_patches.append(bar[0])
         
-                # Battery inflow should be plotted as negative values
                 if 'Battery Inflow' in step_avg.columns:
                     ax.bar(step_avg.index, -step_avg['Battery Inflow'], bottom=negative_stack, color=production_colors['Battery Outflow'], label='Battery Inflow')
                     negative_stack -= step_avg['Battery Inflow']
@@ -220,12 +219,10 @@ for comparison_name, scenario_group in comparisons.items():
     fig.supylabel("Energy (kWh)")
 
     fig.legend(all_patches, all_labels, loc='lower center', bbox_to_anchor=(0.5, -0.1), ncol=len(all_labels)/3, frameon=False)
-    #fig.legend(all_patches, all_labels, loc='lower center', bbox_to_anchor=(0.85, 0.5), frameon=False) #center left
 
     plt.tight_layout(rect=[0, 0, 0.85, 0.95])
 
-    output_dir = f'FazaCaseStudy//comparisons'
-    os.makedirs(output_dir, exist_ok=True)
+    output_dir = f'FazaCaseStudy//plots//comparisons'
     plt.savefig(f"{output_dir}/{comparison_name}_energy_balance_comparison.png", bbox_inches='tight', facecolor="white", edgecolor="white")
     plt.close()
 

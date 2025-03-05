@@ -95,7 +95,6 @@ def calculate_connections_per_year():
     plt.ylabel("New Household Connections")
     plt.legend()
     plt.grid(True)
-    plt.show()
 
     # Plot cumulative growth graphs
     plt.figure(figsize=(10, 6))
@@ -108,8 +107,7 @@ def calculate_connections_per_year():
     plt.ylabel("Cumulative Household Connections")
     plt.legend()
     plt.grid(True)
-    plt.savefig(f'FazaCaseStudy\\cumulativehouseholdconnections.png', bbox_inches='tight', facecolor="white", edgecolor="white")
-    plt.show()
+    plt.savefig(f'FazaCaseStudy\\plots\\cumulativehouseholdconnections.png', bbox_inches='tight', facecolor="white", edgecolor="white")
 
     return df
 
@@ -148,8 +146,7 @@ def get_average_appliance_tier(df):
     plt.ylabel("Average Appliance Tier")
     plt.legend()
     plt.grid(True)
-    plt.savefig(f'FazaCaseStudy\\averageappliancetier.png', bbox_inches='tight', facecolor="white", edgecolor="white")
-    plt.show()
+    plt.savefig(f'FazaCaseStudy\\plots\\averageappliancetier.png', bbox_inches='tight', facecolor="white", edgecolor="white")
     return df
 
 def get_demand_increase(initial_demand, df):
@@ -186,7 +183,6 @@ def get_demand_increase(initial_demand, df):
     plt.ylabel("Average Demand Increase")
     plt.legend()
     plt.grid(True)
-    plt.show()
 
     # Plot cumulative demand increase
     plt.figure(figsize=(10, 6))
@@ -198,7 +194,6 @@ def get_demand_increase(initial_demand, df):
     plt.ylabel("Cumulative Demand Increase")
     plt.legend()
     plt.grid(True)
-    plt.show()
 
     # Define the years of interest (every 5 years from 2022 to 2041)
     selected_years = [2022, 2027, 2032, 2037, 2041]
@@ -249,10 +244,8 @@ def get_demand_increase(initial_demand, df):
     axes[2].set_xlabel("Hour of Day")
     axes[2].grid(True)
 
-    # Show the plots
     plt.tight_layout()
-    plt.savefig(f'FazaCaseStudy\\demandevolution.png', bbox_inches='tight', facecolor="white", edgecolor="white")
-    plt.show()
+    plt.savefig(f'FazaCaseStudy\\plots\\demandevolution.png', bbox_inches='tight', facecolor="white", edgecolor="white")
     return low_growth_demand_df, moderate_growth_demand_df, high_growth_demand_df
 
 
@@ -270,6 +263,6 @@ initial_year_data = initial_year_data_30min.groupby(initial_year_data_30min.inde
 
 low_growth_demand_df, moderate_growth_demand_df, high_growth_demand_df = get_demand_increase(initial_year_data, df)
 
-low_growth_demand_df.to_csv("FazaCaseStudy\low_growth_demand.csv", index=False)
-moderate_growth_demand_df.to_csv("FazaCaseStudy\moderate_growth_demand.csv", index=False)
-high_growth_demand_df.to_csv("FazaCaseStudy\high_growth_demand.csv", index=False)
+low_growth_demand_df.to_csv("FazaCaseStudy\\results\\low_growth_demand.csv", index=False)
+moderate_growth_demand_df.to_csv("FazaCaseStudy\\results\moderate_growth_demand.csv", index=False)
+high_growth_demand_df.to_csv("FazaCaseStudy\\results\\high_growth_demand.csv", index=False)

@@ -51,5 +51,5 @@ ax_inset.set_xticks([])
 ax_inset.set_yticks([])
 
 # Save and show the map
-plt.savefig("FazaCaseStudy\\faza_location_kenya_only.png", dpi=300, bbox_inches="tight")
+plt.savefig("FazaCaseStudy\\plots\\faza_location.png", dpi=300, bbox_inches="tight")
 plt.show()

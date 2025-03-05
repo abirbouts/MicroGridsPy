@@ -2,7 +2,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import os
 
-# Define the scenarios for comparison
+# Scenarios that should be compared
 comparisons = {
     #"Demand": ["lowdemand", "basecase", "highdemand"],
     #"RESComparison": ["bestcaseres", "basecase", "worstcaseres"],
@@ -110,7 +110,7 @@ for comparison_name, scenario_group in comparisons.items():
     fig, axs = plt.subplots(max_steps, len(scenario_group), figsize=(4 * len(scenario_group), 3 * max_steps), sharey=True)
 
     if max_steps == 1:
-        axs = [axs]  # Ensure it's always a 2D array
+        axs = [axs]
 
     for col_idx, scenario in enumerate(scenario_group):
         for row_idx in range(max_steps):
@@ -143,10 +143,8 @@ for comparison_name, scenario_group in comparisons.items():
         frameon=False
     )
 
-    plt.tight_layout(rect=[0, 0.05, 1, 0.95])  # Adjust layout for the legend
-    output_dir = f'FazaCaseStudy//comparisons'
-    os.makedirs(output_dir, exist_ok=True)
-
+    plt.tight_layout(rect=[0, 0.05, 1, 0.95]) 
+    output_dir = f'FazaCaseStudy//plots//comparisons'
     plt.savefig(f"{output_dir}/{comparison_name}_comparison.png", bbox_inches='tight', facecolor="white", edgecolor="white")
     plt.close()
 

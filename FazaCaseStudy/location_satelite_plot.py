@@ -58,5 +58,5 @@ ax.set_yticks([])
 ax.legend()
 
 # Save and show the map
-plt.savefig("FazaCaseStudy\\faza_satellite_area.png", dpi=300, bbox_inches="tight")
+plt.savefig("FazaCaseStudy\\plots\\faza_satellite_area.png", dpi=300, bbox_inches="tight")
 plt.show()

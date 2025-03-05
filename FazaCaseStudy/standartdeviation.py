@@ -32,7 +32,6 @@ def day_to_date(day_num):
     target_date = base_date + datetime.timedelta(days=int(day_num) - 1)
     return target_date.strftime('%d %b')
 
-# Example usage
 if __name__ == '__main__':
     csv_file1 = 'FazaCaseStudy\\Resources Availability Nasa.csv'
     csv_file2 = 'FazaCaseStudy\\Resources Availability PVGIS.csv'
@@ -64,7 +63,7 @@ if __name__ == '__main__':
     ax.legend()
 
     # Adjust figure layout to make space on the right for text
-    plt.subplots_adjust(right=0.75)  # Shrink plot area to leave space
+    plt.subplots_adjust(right=0.75) 
 
     # Add text next to the plot
     plt.figtext(0.75, 0.7, f'NASA Avg: {avg_daily_nasa:.2f} Wh', ha='left')
@@ -73,7 +72,6 @@ if __name__ == '__main__':
     plt.figtext(0.75, 0.50, f'PVGIS Std Dev: {std_dev_pvgis:.2f} Wh', ha='left')
 
     plt.grid(True)
-    #plt.tight_layout()
     plt.show()
 
     # Print standard deviation values

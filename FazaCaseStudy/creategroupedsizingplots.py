@@ -70,7 +70,7 @@ def load_data(file_path):
     for i in range(len(cols) - 2, 1, -1):  # Start from last column, subtract previous one
         df[cols[i]] = df[cols[i]] - df[cols[i - 1]]
     
-    return df  # Keep all steps and existing data
+    return df 
 
 
 def create_comparison_stacked_bar_chart(comparison_name, scenarios):
@@ -78,7 +78,7 @@ def create_comparison_stacked_bar_chart(comparison_name, scenarios):
     fig, ax1 = plt.subplots(figsize=(12, 6))
     ax2 = ax1.twinx()
     
-    width = 0.18  # Bar width for individual scenarios (adjusted for spacing)
+    width = 0.18  # Bar width for individual scenarios
     spacing = 0.05  # Space between scenario groups
     x_positions = np.arange(len(base_colors))  # X-axis positions for each component
 
@@ -166,10 +166,7 @@ def create_comparison_stacked_bar_chart(comparison_name, scenarios):
     # Add legends
     ax1.legend(handles=legend_elements + scenario_legend_elements, loc='upper left', bbox_to_anchor=(1.1, 1))
 
-    #plt.tight_layout(rect=[0, 0, 0.8, 1])
-
-    output_dir = f'FazaCaseStudy\\comparisons'
-    os.makedirs(output_dir, exist_ok=True)
+    output_dir = f'FazaCaseStudy\\plots\\comparisons'
     plt.savefig(f'{output_dir}\\{comparison_name}_comparison_sizing.png', bbox_inches='tight', facecolor="white", edgecolor="white")
     plt.close()
 

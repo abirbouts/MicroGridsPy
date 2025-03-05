@@ -48,13 +48,11 @@ def plot_wind_energy_comparison(csv_file1, csv_file2):
     ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 
     # Add total average wind energy to the plot
-    #plt.text(0.05, 0.05, f'NASA Avg Wind Energy: {avg_wind_nasa:.2f} Wh', transform=plt.gca().transAxes, fontsize=10, color='blue', verticalalignment='bottom')
-    #plt.text(0.05, 0.10, f'PVGIS Avg Wind Energy: {avg_wind_pvgis:.2f} Wh', transform=plt.gca().transAxes, fontsize=10, color='red', verticalalignment='bottom')
     ax.grid(True)
     plt.tight_layout()
 
     # Show plot
-    plt.savefig("FazaCaseStudy/wind_nasa_vs_pvgis.png", bbox_inches='tight', facecolor="white", edgecolor="white")
+    plt.savefig("FazaCaseStudy/plots/wind_nasa_vs_pvgis.png", bbox_inches='tight', facecolor="white", edgecolor="white")
 
 # Example usage
 if __name__ == '__main__':
