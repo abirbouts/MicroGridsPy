@@ -242,6 +242,35 @@ def run_model():
                 solution = model.solve_single_objective(solver=solver, problem_fn=lp_path, log_path=log_path)
             st.session_state.model = model
             model.solution = solution
+            try:
+                st.write(model.get_solution_variable('Battery Maximum Charge Power'))
+            except:
+                st.write("No battery_max_charge_power")
+            try:
+                st.write(model.get_solution_variable('Battery Maximum Discharge Power'))
+            except:
+                st.write("No battery_max_discharge_power")
+            try:
+                st.write(model.get_solution_variable('Binary for BESS Single Flow'))
+            except:
+                st.write("No binary_for_bess_single_flow")
+            try:
+                st.write(model.get_solution_variable('Binary for DC System Single Flow'))
+            except:
+                st.write("No Binary for DC System Single Flow")
+            try:
+                st.write(model.get_solution_variable('Ones'))
+            except:
+                st.write("No Ones")
+            try:
+                st.write(model.get_solution_variable('Battery Replacement Cost (Actualized)'))
+            except:
+                st.write("No Battery Replacement Cost (Actualized)")
+            try:
+                st.write(model.get_solution_variable('Battery Replacement Cost (Not Actualized)'))
+            except:
+                st.write("No Battery Replacement Cost (Not Actualized)")
+
             st.success("Single-objective optimization completed successfully!")
 
     st.write("---")

@@ -3,10 +3,35 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from scipy.interpolate import interp1d
 
+# Set plot style
+plt.style.use('fivethirtyeight')
+textwidthfraction = 0.45
+fontsize = 12 / textwidthfraction
+fontsize2 = 10 / textwidthfraction
+plt.rcParams.update({
+    "text.usetex": True,      
+    "font.family": "serif",
+    "font.size": fontsize,
+    "axes.titlesize": fontsize,
+    "axes.labelsize": fontsize,
+    "legend.fontsize": fontsize,
+    "xtick.labelsize": fontsize2,
+    "ytick.labelsize": fontsize2
+})
+
+# Define colors to match previous scenario colors
+colors = {
+    'Historical': '#000000',  # Black for historical data
+    '450 Scenario': '#E57373',  # Muted Red for conservative
+    'Current Policies': '#64B5F6',  # Steel Blue for moderate
+    'New Policies': '#81C784'  # Soft Green for advanced
+}
+
 # Diesel Prices in Kenya (Historical Data)
 year_historical = [2022, 2023, 2024, 2025]
 diesel_price_historical = [141.06, 201.47, 171.6, 165.37]  # Diesel price in KES
 exchange_rate_historical = [118.25, 146.95, 130.03, 128.5]  # Exchange rate for each year (KES/USD)
+
 diesel_price_df = pd.DataFrame({'Year': year_historical, 
                                 'Diesel Price (KES)': diesel_price_historical, 
                                 'Exchange Rate (KES/USD)': exchange_rate_historical})
@@ -59,26 +84,33 @@ df_historical = df_historical.rename(columns={"Diesel Price (USD)": "Diesel Pric
 
 df_combined = pd.merge(df_historical, df_future, on="Year", how="outer").sort_values("Year")
 
+# Save to CSV
+df_combined.to_csv('FazaCaseStudy\\diesel_price_projections.csv', index=False)
+
 # Plot the results
 plt.figure(figsize=(12, 6))
 
 # Plot historical data
-plt.plot(df_combined["Year"], df_combined["Diesel Price in Kenya (USD/liter) - Historical"], label="Historical Diesel Price", 
-         marker='o', linestyle='-', color="black")
+plt.plot(df_combined["Year"], df_combined["Diesel Price in Kenya (USD/liter) - Historical"], 
+         label="Historical Diesel Price", marker='o', linestyle='-', color=colors['Historical'], linewidth=2.5)
 
 # Plot future projections
-plt.plot(df_combined["Year"], df_combined["Diesel Price in Kenya (USD/liter) - 450"], label="Diesel Price - 450 Scenario", marker='o', linestyle='-')
-plt.plot(df_combined["Year"], df_combined["Diesel Price in Kenya (USD/liter) - Current Policies"], label="Diesel Price - Current Policies", marker='s', linestyle='--')
-plt.plot(df_combined["Year"], df_combined["Diesel Price in Kenya (USD/liter) - New Policies"], label="Diesel Price - New Policies", marker='^', linestyle=':')
+plt.plot(df_combined["Year"], df_combined["Diesel Price in Kenya (USD/liter) - 450"], 
+         label="450 Scenario", marker='o', linestyle='-', color=colors['450 Scenario'], linewidth=2.5)
+plt.plot(df_combined["Year"], df_combined["Diesel Price in Kenya (USD/liter) - Current Policies"], 
+         label="Current Policies", marker='s', linestyle='--', color=colors['Current Policies'], linewidth=2.5)
+plt.plot(df_combined["Year"], df_combined["Diesel Price in Kenya (USD/liter) - New Policies"], 
+         label="New Policies", marker='^', linestyle=':', color=colors['New Policies'], linewidth=2.5)
 
+# Set titles and labels
 plt.xlabel("Year")
 plt.ylabel("Diesel Price (USD/liter)")
-plt.title("Projected Diesel Prices in Kenya under IEA Scenarios")
-plt.legend()
-plt.grid(True)
 
-# Ensure x-axis ticks are only integers (years)
+# Format x-axis and add legend
 plt.xticks(df_combined["Year"].astype(int), rotation=45)
+plt.legend(frameon=True, loc='upper left')
+plt.grid(True, which='both', linestyle='--', linewidth=0.7, alpha=0.7)
 
-# Show the plot
-plt.show()
+# Save and show the plot
+plt.tight_layout()
+plt.savefig(f'FazaCaseStudy\\diesel_price.png', bbox_inches='tight', facecolor="white", edgecolor="white")

@@ -57,7 +57,7 @@ def get_sizing_results(model) -> pd.DataFrame:
         if bat_units is not None:
             battery_nominal_capacity = model.parameters['BATTERY_NOMINAL_CAPACITY']
             battery_existing_capacity = model.parameters.get('BATTERY_EXISTING_CAPACITY', 0)
-            categories.append("Battery Bank")
+            categories.append("Battery")
             capacities.append(np.round((bat_units.values * battery_nominal_capacity.values) / 1000))  # kWh, rounded
             existing_capacities.append(np.round(battery_existing_capacity / 1000))  # Rounded
             capacity_units.append('kWh')

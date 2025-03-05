@@ -25,18 +25,25 @@ from microgridspy.post_process.export_results import save_energy_balance_to_exce
 # Constants
 DEFAULT_COLORS = {
     'Demand': '#000000',  # Black
-    'Curtailment': '#FFA500',  # Orange
-    'Battery': '#4CC9F0',  # Light Blue
+    'Curtailment': '#E53935',  # Orange
+    'Battery': '#4CAF50',  # Light Blue
     'Electricity Purchased': '#800080',  # Purple
     'Electricity Sold': '#008000',  # Green
-    'Lost Load': '#F21B3F'  # Red
+    'Lost Load': '#F21B3F',  # Red
+    'Solar PV': '#FFC107',
+    'Wind': "#03A9F4",
+    'Diesel Generator': '#8B4513',
+    "Fuel": '#8B4513',
+    "Fixed O&M": "#FF9800",
+    "Variable": "#FF9800",
+    "Investment": "#1976D2"
 }
 
 # Helper functions
 def initialize_colors(model: Model) -> Dict[str, str]:
     """Initialize or retrieve the color dictionary from the session state."""
     colors = DEFAULT_COLORS.copy()
-
+    '''
     # Add renewable sources colors
     for i, res_name in enumerate(model.sets['renewable_sources'].values):
         colors[res_name] = ['#FFFF00', '#FFFFE0', '#FFFACD', '#FAFAD2'][i % 4]  # Shades of yellow
@@ -48,7 +55,8 @@ def initialize_colors(model: Model) -> Dict[str, str]:
 
     if 'color_dict' not in st.session_state:
         st.session_state.color_dict = colors
-
+    '''
+    st.session_state.color_dict = colors
     return st.session_state.color_dict
 
 def create_color_customization_section(all_elements: List[str], color_dict: Dict[str, str]) -> None:
@@ -133,7 +141,7 @@ def define_all_elements(model: Model) -> List[str]:
         elements.append("Lost Load")
     return elements
 
-def export_results(project_name: str, model: Model, costs_df: pd.DataFrame, sizing_df: pd.DataFrame, fig: dict) -> None:
+def export_results(project_name: str, model: Model, costs_df: pd.DataFrame, sizing_df: pd.DataFrame, transformer_sizing_df: pd.DataFrame, fig: dict) -> None:
     """Setup the export results section."""
 
     # Retrieve results folder path
@@ -156,6 +164,9 @@ def export_results(project_name: str, model: Model, costs_df: pd.DataFrame, sizi
             # Sizing results
             sizing_df.to_excel(results_folder / "Sizing Results.xlsx", index=False)
             sizing_df.to_excel(project_folder / "Sizing Results.xlsx", index=False)
+            if transformer_sizing_df is not None:
+                transformer_sizing_df.to_excel(results_folder / "Transformer Sizing Results.xlsx", index=False)
+                transformer_sizing_df.to_excel(project_folder / "Transformer Sizing Results.xlsx", index=False)
             
             # Energy balance
             save_energy_balance_to_excel(model, results_folder)
@@ -241,9 +252,13 @@ def plots_dashboard():
     st.pyplot(sizing_fig)
     st.table(sizing_df)
 
-    transformer_sizing_df = get_transformer_sizing_results(model)
-    st.write("Transformer Sizing Results")
-    st.table(transformer_sizing_df)
+    try:
+        transformer_sizing_df = get_transformer_sizing_results(model)
+        st.write("Transformer Sizing Results")
+        st.table(transformer_sizing_df)
+    except:
+        transformer_sizing_df = None
+        st.write("No transformer sizing results available.")
     
     # Energy Balance Visualization
     # --------------------------------
@@ -283,7 +298,7 @@ def plots_dashboard():
     # Export results
     st.header("Export Results")
     st.write("Click the buttons below to export the full results to Excel or save the current plots.")
-    export_results(project_name, model, costs_df, sizing_df, fig)
+    export_results(project_name, model, costs_df, sizing_df, transformer_sizing_df, fig)
 
     st.write("---")  # Add a separator
 

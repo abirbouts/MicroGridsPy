@@ -86,6 +86,24 @@ def new_project():
     
     st.image(load_image("model_overview.png"), use_column_width=True, caption="Model Overview")
     
+    st.session_state.colors = {
+        "Solar PV": (1.0, 0.756, 0.027),  # Yellow-Orange
+        "Wind": (0.012, 0.663, 0.957),  # Sky Blue
+        "Diesel Generator": (0.545, 0.271, 0.075),  # Brown
+        "Battery Storage": (0.298, 0.686, 0.314),  # Green
+        "Demand": (0.0, 0.0, 0.0),  # Black
+        "Curtailment": (0.898, 0.224, 0.208)  # Red
+    }
+
+    st.session_state.colors_transparent = {
+        "Solar PV": (1.0, 0.756, 0.027, 0.5),  # Yellow-Orange
+        "Wind": (0.012, 0.663, 0.957, 0.5),  # Sky Blue
+        "Generator": (0.545, 0.271, 0.075, 0.5),  # Brown
+        "Battery": (0.298, 0.686, 0.314, 0.5),  # Green
+        "Demand": (0.0, 0.0, 0.0, 0.5),  # Black
+        "Curtailment": (0.898, 0.224, 0.208, 0.5)  # Red
+    }
+
     # Create a new project
     st.subheader("Create a New Project")
     st.write("Enter the details below to create a new project.")

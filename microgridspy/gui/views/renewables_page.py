@@ -59,6 +59,7 @@ def load_cost_df(res_names, currency) -> pd.DataFrame:
 
 def upload_cost_data(cost_df, res_name, currency) -> None:
     # Create dataframe that can be adjusted by the user
+    st.markdown(f"Investment Cost [{currency}/W]")
     edited_df = st.data_editor(
         cost_df[[f'{res_name} Investment Cost [{currency}/W]']],
         hide_index=False
@@ -91,7 +92,6 @@ def show_res_cost(cost_df, res_names, currency="USD") -> None:
 
 def update_parameters(i: int, res_name: str, time_horizon: int, brownfield: bool, land_availability: float, currency: str) -> None:
     """Update renewable parameters for the given index."""
-    st.subheader(f"{res_name} Parameters")
     
     if land_availability > 0:
         st.session_state.res_specific_area[i] = st.number_input(
@@ -99,12 +99,6 @@ def update_parameters(i: int, res_name: str, time_horizon: int, brownfield: bool
             min_value=0.0, 
             value=float(st.session_state.res_specific_area[i]), 
             key=f"spec_area_{i}")
-    
-    st.session_state.res_specific_investment_cost[i] = st.number_input(
-        f"Specific Investment Cost [{currency}/W]", 
-        min_value=0.0,
-        value=float(st.session_state.res_specific_investment_cost[i]), 
-        key=f"res_inv_cost_{i}")
     
     st.session_state.res_specific_om_cost[i] = st.number_input(
         f"Specific O&M Cost as % of investment cost [%]", 
@@ -353,14 +347,16 @@ def renewables_technology() -> None:
 
     # Display parameters for each renewable source
     for i in range(res_sources):
-        update_parameters(i, res_names[i], time_horizon, brownfield, land_availability, currency)
+        st.subheader(f"{res_names[i]} Parameters")
         edited_df = upload_cost_data(cost_df, res_names[i], currency)
         if st.button(f"Save investment cost data for {res_names[i]}"):
             res_cost_file_path = PathManager.RES_COST_FILE_PATH
             cost_df[f'{res_names[i]} Investment Cost [{currency}/W]'] = edited_df[f'{res_names[i]} Investment Cost [{currency}/W]']
             cost_df.to_csv(res_cost_file_path, index=True)
             st.rerun()
+        update_parameters(i, res_names[i], time_horizon, brownfield, land_availability, currency)
         st.markdown("---")  # Add a separator between renewable sources
+    
     show_res_cost(cost_df, res_names)
 
     generate_flow_chart(res_names)

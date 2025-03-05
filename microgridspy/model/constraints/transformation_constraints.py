@@ -3,6 +3,7 @@ import linopy
 from linopy import Model
 from microgridspy.model.parameters import ProjectParameters
 from typing import Dict
+import streamlit as st
 
 def add_inverter_minimum_size_constraints(model: Model, 
                                           settings: ProjectParameters, 
@@ -31,9 +32,9 @@ def add_inverter_minimum_size_constraints(model: Model,
                 lifetime_exceeded = total_age > param['RES_INVERTER_LIFETIME'].sel(renewable_sources=res)
 
                 if lifetime_exceeded is False:
-                    inverter_capacity = (param['RES_INVERTER_EXISTING_CAPACITY'] + var['res_inverter_units'].sel(steps=step) * param['RES_INVERTER_NOMINAL_CAPACITY']).sel(renewable_sources=res)
+                    inverter_capacity = (param['RES_INVERTER_EXISTING_CAPACITY'].sel(renewable_sources=res) + var['res_inverter_units'].sel(steps=step, renewable_sources=res) * param['RES_INVERTER_NOMINAL_CAPACITY'].sel(renewable_sources=res))
                 else:
-                    inverter_capacity = var['res_inverter_units'].sel(steps=step) * param['RES_INVERTER_NOMINAL_CAPACITY'].sel(renewable_sources=res)
+                    inverter_capacity = var['res_inverter_units'].sel(steps=step, renewable_sources=res) * param['RES_INVERTER_NOMINAL_CAPACITY'].sel(renewable_sources=res)
             else:
                 inverter_capacity = var['res_inverter_units'].sel(steps=step, renewable_sources=res) * param['RES_INVERTER_NOMINAL_CAPACITY'].sel(renewable_sources=res)
 
@@ -47,9 +48,8 @@ def add_inverter_minimum_size_constraints(model: Model,
                 if is_brownfield:
                     total_age = param['BATTERY_INVERTER_EXISTING_YEARS'] + (year - years[0])
                     lifetime_exceeded = total_age > param['BATTERY_INVERTER_LIFETIME']
-
                     if lifetime_exceeded is False:
-                        inverter_capacity = (param['BATTRY_INVERTER_EXISTING_CAPACITY'] + var['battery_inverter_units'].sel(steps=step) * param['BATTERY_INVERTER_NOMINAL_CAPACITY'])
+                        inverter_capacity = (param['BATTERY_INVERTER_EXISTING_CAPACITY'] + var['battery_inverter_units'].sel(steps=step) * param['BATTERY_INVERTER_NOMINAL_CAPACITY'])
                     else:
                         inverter_capacity = var['battery_inverter_units'].sel(steps=step) * param['BATTERY_INVERTER_NOMINAL_CAPACITY']
                 else:
@@ -102,3 +102,20 @@ def add_inverter_minimum_size_constraints(model: Model,
                 model.add_constraints(
                     var['energy_from_grid'].sel(years=year) <= var['grid_transformer_units'].sel(steps=step) * param['GRID_TRANSFORMER_NOMINAL_CAPACITY'],
                 )
+
+    for step in sets.steps.values[1:]:
+        model.add_constraints(
+            var['res_inverter_units'].sel(steps=step) >= var['res_inverter_units'].sel(steps=step - 1),
+            name=f"RES Inverter Min Step Units Constraint - Step {step}")
+        if has_battery:
+            model.add_constraints(
+                var['battery_inverter_units'].sel(steps=step) >= var['battery_inverter_units'].sel(steps=step - 1),
+                name=f"Battery Inverter Min Step Units Constraint - Step {step}")
+        if has_generator:
+            model.add_constraints(
+                var['generator_rectifier_units'].sel(steps=step) >= var['generator_rectifier_units'].sel(steps=step - 1),
+                name=f"Generator Rectifier Min Step Units Constraint - Step {step}")
+        if has_grid_connection:
+            model.add_constraints(
+                var['grid_transformer_units'].sel(steps=step) >= var['grid_transformer_units'].sel(steps=step - 1),
+                name=f"Grid Transformer Min Step Units Constraint - Step {step}")

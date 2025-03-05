@@ -44,6 +44,14 @@ def add_project_variables(model: Model, settings: ProjectParameters, sets: xr.Da
         # CO2 Emission [kgCO2] of the system for each scenario
         project_variables['scenario_co2_emission'] = model.add_variables(lower=0, coords=[sets.scenarios], name='Scenario Total CO2 Emissions')
 
+    if settings.advanced_settings.milp_formulation:
+        project_variables['ones'] = model.add_variables(binary=True, coords=[sets.scenarios, sets.years, sets.periods], name='Ones')
+        model.add_constraints(
+            project_variables['ones'] == 1,
+            name=f"Fix ones to 1"
+        )
+
+
     return project_variables
 
 def add_res_variables(model: Model, settings: ProjectParameters, sets: xr.Dataset) -> Dict[str, linopy.Variable]:
@@ -88,9 +96,9 @@ def add_battery_variables(model: Model, settings: ProjectParameters, sets: xr.Da
     battery_variables = {}
 
     # Installed capacity [W*period] for battery bank in each investment step
-    #if settings.advanced_settings.milp_formulation:
+    if settings.advanced_settings.milp_formulation:
         # Boolean variable to determine single flow (inflow or outflow)
-        #battery_variables['single_flow_bess'] = model.add_variables(binary=True, coords=[sets.scenarios, sets.years, sets.periods], name='Binary for BESS Single Flow')
+        battery_variables['single_flow_bess'] = model.add_variables(binary=True, coords=[sets.scenarios, sets.years, sets.periods], name='Binary for BESS Single Flow')
     
     if settings.advanced_settings.unit_commitment:
         # MILP Formulation: integer units
@@ -109,10 +117,11 @@ def add_battery_variables(model: Model, settings: ProjectParameters, sets: xr.Da
     
     if any(conn_type == 'Connected with the same Inverter as the Battery to the Microgrid' for conn_type in settings.renewables_params.res_connection_types):
         battery_variables['single_flow_dc_system'] = model.add_variables(binary=True, coords=[sets.scenarios, sets.years, sets.periods], name='Binary for DC System Single Flow') 
-        battery_variables['ones'] = model.add_variables(binary=True, coords=[sets.scenarios, sets.years, sets.periods], name='Ones')
-        battery_variables['dc_system_feed_in_losses'] = model.add_variables(lower=0, coords=[sets.scenarios, sets.years, sets.periods], name="Feed In Losses - DC System")
-        battery_variables['dc_system_charge_losses'] = model.add_variables(lower=0, coords=[sets.scenarios, sets.years, sets.periods], name="Charge Losses - DC System")
+        battery_variables['dc_system_feed_in_losses'] = model.add_variables(coords=[sets.scenarios, sets.years, sets.periods], lower=0, name="Feed In Losses - DC System")
+        battery_variables['dc_system_charge_losses'] = model.add_variables(coords=[sets.scenarios, sets.years, sets.periods], upper=0, name="Charge Losses - DC System")
         battery_variables['dc_system_energy'] = model.add_variables(coords=[sets.scenarios, sets.years, sets.periods], name='DC System Energy')
+        battery_variables['dc_system_energy_positive'] = model.add_variables(coords=[sets.scenarios, sets.years, sets.periods], lower=0, name="Positive DC System Energy")
+        battery_variables['dc_system_energy_negative'] = model.add_variables(coords=[sets.scenarios, sets.years, sets.periods], upper=0, name="Negative DC System Energy")
 
     else:
         battery_variables['battery_transformation_losses'] = model.add_variables(lower=0, coords=[sets.scenarios, sets.years, sets.periods], name="Transformation Losses - Battery")

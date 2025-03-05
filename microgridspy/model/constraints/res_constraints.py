@@ -68,6 +68,17 @@ def add_renewables_capacity_expansion_constraints(model: Model, settings: Projec
         model.add_constraints(
             var['res_units'].sel(steps=step) >= var['res_units'].sel(steps=step - 1),
             name=f"Renewables Min Step Units Constraint - Step {step}")
+        
+
+    last_step = sets.steps.values[-1] 
+
+    model.add_constraints(
+        var['res_units'].sel(steps=last_step) >= 1e-5,
+        name="Renewables Min Units Constraint - Last Step"
+    )
+
+    
+
 
 
 def add_res_emissions_constraints(model: Model, settings: ProjectParameters, sets: xr.Dataset, param: xr.Dataset, var: Dict[str, linopy.Variable]) -> None:

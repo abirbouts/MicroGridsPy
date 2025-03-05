@@ -1,6 +1,7 @@
 import xarray as xr
 import pandas as pd
 import streamlit as st
+import numpy as np
 
 from config.path_manager import PathManager
 from microgridspy.model.parameters import ProjectParameters
@@ -237,6 +238,18 @@ def initialize_project_parameters(data: ProjectParameters, sets: xr.Dataset) -> 
         dims=['scenarios'],
         coords={'scenarios': sets.scenarios.values},
         name='Scenario Weights')
+    
+    M_values = [592000, 697849.907, 812679.5425, 935953.0315, 1066410.604, 1201804.747, 1339085.814, 1474887.162, 1606064.252, 1730093.791, 1845254.055, 1950610.781, 2045884.017, 2131272.228, 2207285.106, 2274609.089, 2334010.389, 2386270.692, 2432147.659, 2472352.726]
+    M_values = 1.25 * np.array(M_values)
+
+    # Scenario Weights for multi-scenario optimization
+    project_parameters['M'] = xr.DataArray(
+        M_values,
+        dims=["years"],
+        coords={
+            "years": sets.years.values
+        },
+        name='M')
 
     return xr.Dataset(project_parameters)
 
@@ -452,6 +465,7 @@ def initialize_battery_parameters(data: ProjectParameters, time_series: xr.Datas
             1,
             dims=[],
             name='Ones'),}
+    st.write(f'battery_parametersUNITARY_BATTERY_REPLACEMENT_COST= {battery_parameters["UNITARY_BATTERY_REPLACEMENT_COST"]}')
 
     if data.advanced_settings.multiobjective_optimization:
         battery_parameters['BATTERY_UNIT_CO2_EMISSION'] = xr.DataArray(
@@ -563,6 +577,7 @@ def initialize_generator_parameters(data: ProjectParameters, sets: xr.Dataset) -
             dims=['generator_types', 'years'],
             coords={'generator_types': generator_types, 'years': sets.years.values},
             name='Marginal Cost of operation at nominal efficiency')}
+    st.write(generator_parameters['FUEL_SPECIFIC_COST'])
     
     # Brownfield Investment scenario
     if data.advanced_settings.brownfield:

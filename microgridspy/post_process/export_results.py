@@ -53,16 +53,14 @@ def save_energy_balance_to_excel(model: Model, base_filepath: Path) -> None:
                     data['Battery State of Charge (%)'] = ((state_of_charge.isel(scenarios=scenario).sel(years=year + start_year).values) / 
                                                            (battery_units.sel(steps=step).values * battery_nominal_capacity.values) * 100)
                     if any(model.parameters['RES_CONNECTED_TO_BATTERY'].sel(renewable_sources=res).item() for res in model.sets.renewable_sources.values):
-                        b = model.get_solution_variable('Battery Condition')
-                        feed_in_losses = model.get_solution_variable('Feed In Losses - Battery')
-                        charge_losses = model.get_solution_variable('Charge Losses - Battery')
-                        battery_transformation_losses = model.get_solution_variable("Feed In Losses - Battery") + model.get_solution_variable("Charge Losses - Battery")
+                        feed_in_losses = model.get_solution_variable('Feed In Losses - DC System')
+                        charge_losses = model.get_solution_variable('Charge Losses - DC System')
+                        battery_transformation_losses = model.get_solution_variable("Feed In Losses - DC System") - model.get_solution_variable("Charge Losses - DC System")
                         battery_losses = (battery_transformation_losses.isel(scenarios=scenario).sel(years=year + start_year).values) / 1000   
                         battery_losses = battery_losses.flatten() 
-                        data['Battery Transformation Losses (kWh)'] = battery_losses
-                        data['Charge Losses (kWh)'] = (charge_losses.isel(scenarios=scenario).sel(years=year + start_year).values) / 1000
-                        data['Feed In Losses (kWh)'] = (feed_in_losses.isel(scenarios=scenario).sel(years=year + start_year).values) / 1000           
-                        data['b'] = b.isel(scenarios=scenario).sel(years=year + start_year).values
+                        data['DC System Transformation Losses (kWh)'] = battery_losses
+                        data['DC System Charge Losses (kWh)'] = - (charge_losses.isel(scenarios=scenario).sel(years=year + start_year).values) / 1000
+                        data['DC System Feed In Losses (kWh)'] = (feed_in_losses.isel(scenarios=scenario).sel(years=year + start_year).values) / 1000           
                     else:
                         battery_losses = model.get_solution_variable("Transformation Losses - Battery")
                         battery_losses = (battery_losses.isel(scenarios=scenario).sel(years=year + start_year).values) / 1000

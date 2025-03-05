@@ -212,7 +212,7 @@ def save_resource_data(resource_data: pd.DataFrame, resource_name: str, project_
 
     st.success(f"Resource data saved successfully for {resource_name} at {inputs_folder_path} for current use as well as at {project_folder_path} for future use.")
 
-def plot_resource_data(resource_data: pd.DataFrame, resource_name: str, selected_month: str) -> None:
+def plot_resource_data(resource_data: pd.DataFrame, resource_name: str, selected_month: str, colorone, colortwo) -> None:
     """Plot the resource data for the selected resource and month."""
     resource_data['Hour'] = resource_data.index % 24
     resource_data['Month'] = ((resource_data.index - 1) // 24) % 12 + 1
@@ -234,12 +234,12 @@ def plot_resource_data(resource_data: pd.DataFrame, resource_name: str, selected
     x_labels = [f"{hour:02d}:00" for hour in range(24)]
 
     fig, ax = plt.subplots(figsize=(10, 5))
-    ax.plot(average_daily_profile.index, average_daily_profile.values, label='Average Profile')
-    ax.fill_between(average_daily_profile.index, variability_range_min, variability_range_max, color='gray', alpha=0.3, label='Variability Range')
+    ax.plot(average_daily_profile.index, average_daily_profile.values, label='Average Profile', color=colorone)
+    ax.fill_between(average_daily_profile.index, variability_range_min, variability_range_max, color=colortwo, alpha=0.3, label='Variability Range')
     ax.set_xticks(range(24))
     ax.set_xticklabels(x_labels, rotation=45)
     ax.set_ylabel(f"Resource: {resource_name} [kW]")
-    ax.set_title(f"Average Daily Profile of Resource: {resource_name} - Unit of electricity production")
+    ax.set_title(f"Average Daily Profile: {resource_name}")
     ax.legend()
     ax.grid(True)
     st.pyplot(fig)
@@ -787,7 +787,10 @@ def resource_assessment():
         resource_name = st.selectbox("Select Resource to Visualize", resource_data.columns)
         month_names = ['All Year'] + ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
         selected_month = st.selectbox("Select Month to Visualize", month_names)
-        plot_resource_data(resource_data, resource_name, selected_month)
+        if resource_name == "Solar PV":
+            plot_resource_data(resource_data, resource_name, selected_month, st.session_state.colors["Solar PV"], st.session_state.colors_transparent["Solar PV"])
+        else:
+            plot_resource_data(resource_data, resource_name, selected_month, st.session_state.colors["Wind"], st.session_state.colors_transparent["Wind"])
     else:
         st.warning("No resource data file found. Please upload or download resource data first.")
 

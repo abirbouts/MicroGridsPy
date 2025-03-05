@@ -56,6 +56,7 @@ def load_cost_df(currency) -> pd.DataFrame:
 
 def upload_cost_data(cost_df, currency) -> None:
     # Create dataframe that can be adjusted by the user
+    st.markdown(f"Investment Cost [{currency}/W]")
     edited_df = st.data_editor(
         cost_df[[f'Battery Investment Cost [{currency}/W]']],
         hide_index=False
@@ -67,7 +68,7 @@ def show_battery_cost(cost_df, currency="USD") -> None:
     """
     Display renewable energy cost data as a line plot.
     """
-    st.write("### Renewable Energy Cost Data")
+    st.write("### Battery Cost Data")
     
     # Create a line plot using Matplotlib
     fig, ax = plt.subplots(figsize=(10, 6))
@@ -108,7 +109,13 @@ def battery_technology() -> None:
         st.session_state.battery_chemistry = st.text_input("Battery Chemistry", value=st.session_state.battery_chemistry)
         if unit_committment:
             st.session_state.battery_nominal_capacity = st.number_input("Nominal Capacity [Wh]", min_value=0.0, value=st.session_state.battery_nominal_capacity)
-        st.session_state.battery_specific_investment_cost = st.number_input(f"Specific Investment Cost [{currency}/Wh]", min_value=0.0, value=st.session_state.battery_specific_investment_cost,)
+        cost_df = load_cost_df(currency)
+        edited_df = upload_cost_data(cost_df, currency)
+        if st.button(f"Save investment cost data for Battery"):
+            battery_cost_file_path = PathManager.BATTERY_COST_FILE_PATH
+            cost_df[f'Battery Investment Cost [{currency}/W]'] = edited_df[f'Battery Investment Cost [{currency}/W]']
+            cost_df.to_csv(battery_cost_file_path, index=True)
+            st.rerun()
         st.session_state.battery_specific_electronic_investment_cost = st.number_input(f"Specific Electronic Investment Cost as % of investment cost [%]", min_value=0.0, max_value=100.0, value=st.session_state.battery_specific_electronic_investment_cost * 100) / 100
         st.session_state.battery_specific_om_cost = st.number_input(f"Specific O&M Cost as % of investment cost [%]", min_value=0.0, value=st.session_state.battery_specific_om_cost * 100) / 100
         st.session_state.battery_discharge_battery_efficiency = st.number_input("Discharge Efficiency [%]", min_value=0.0, max_value=100.0, value=st.session_state.battery_discharge_battery_efficiency * 100) / 100
@@ -158,22 +165,12 @@ def battery_technology() -> None:
                                                                                     min_value=0, 
                                                                                     max_value=(st.session_state.battery_inverter_lifetime - 1),
                                                                                     value=st.session_state.battery_inverter_existing_years)
+        show_battery_cost(cost_df)
 
     else:
         st.warning("Battery technology is not included in the system configuration. If you want to include a battery, please edit the project settings page.")
 
-    
-    st.write("### Battery Cost Data") 
-    cost_df = load_cost_df(currency)
-    edited_df = upload_cost_data(cost_df, currency)
-    if st.button(f"Save investment cost data for Battery"):
-        battery_cost_file_path = PathManager.BATTERY_COST_FILE_PATH
-        cost_df[f'Battery Investment Cost [{currency}/W]'] = edited_df[f'Battery Investment Cost [{currency}/W]']
-        cost_df.to_csv(battery_cost_file_path, index=True)
-        st.rerun()
-    show_battery_cost(cost_df)
-
-    st.markdown("---")
+        st.markdown("---")
 
 
 

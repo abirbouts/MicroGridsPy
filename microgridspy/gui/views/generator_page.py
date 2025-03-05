@@ -295,8 +295,6 @@ def generator_technology() -> None:
 
 
         # Partial Load Parameters
-        st.write('Milp Formulation:', milp_formulation)
-        st.write('Unit Commitment:', unit_commitment)
         if milp_formulation and unit_commitment:
             st.header("Partial Load Parameters")
             st.session_state.partial_load = st.checkbox("Enable Partial Load", value=st.session_state.partial_load)

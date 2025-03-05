@@ -3,7 +3,7 @@ from typing import Dict
 import xarray as xr
 import linopy
 from linopy import Model
-
+import streamlit as st
 from microgridspy.model.parameters import ProjectParameters
 
 
@@ -24,12 +24,13 @@ def add_energy_balance_constraints(
     # Calculate total renewable energy production
     total_res_energy_production = var['res_energy_production'].sum('renewable_sources')
     total_curtailment = var['curtailment'].sum('renewable_sources')
+    
 
     for year in sets.years.values:
         step = years_steps_tuples[year - years[0]][1]
         
         # Initialize total_energy_production for each year
-        yearly_energy_production: linopy.LinearExpression = total_res_energy_production.sel(steps=step) - total_curtailment.sel(years=year)
+        yearly_energy_production: linopy.LinearExpression = total_res_energy_production.sel(steps=step) - total_curtailment.sel(years=year)      
         yearly_transformation_losses: linopy.LinearExpression = 0
 
         # Calculate renewable transformation losses and save them
@@ -37,10 +38,14 @@ def add_energy_balance_constraints(
         res_yearly_transformation_losses = {}
 
         for res in sets.renewable_sources.values:
+            model.add_constraints(
+                var['res_energy_production'].sel(steps=step, renewable_sources=res) - var['curtailment'].sel(years=year, renewable_sources=res) >= 0,
+                name=f"Renewable Energy Production Positive - Year {year} - {res}"
+            )
             # Calculate transformation losses for each renewable source
             source_losses = (
-                (var['res_energy_production'].sel(renewable_sources=res).sel(steps=step)
-                 - var['curtailment'].sel(renewable_sources=res).sel(years=year))
+                (var['res_energy_production'].sel(renewable_sources=res, steps=step)
+                 - var['curtailment'].sel(renewable_sources=res, years=year))
                  * (1 - param['RES_INVERTER_EFFICIENCY'].sel(renewable_sources=res))
             )
             # Save losses for the source into the dictionary
@@ -51,7 +56,7 @@ def add_energy_balance_constraints(
                 name=f"RES Transformation Losses - {res} - Year {year}"
             )
         # Optionally: Sum up all sources for total yearly transformation losses
-        yearly_transformation_losses = sum(res_yearly_transformation_losses.values())
+        yearly_transformation_losses += sum(res_yearly_transformation_losses.values())
 
         if has_battery:
             # Calculate battery system energy
@@ -65,10 +70,16 @@ def add_energy_balance_constraints(
                     if param['RES_CONNECTED_TO_BATTERY'].sel(renewable_sources=res).item() == True:
                         battery_system_energy += (
                             var['res_energy_production'].sel(renewable_sources=res, steps=step)
-                            - var['curtailment'].sel(renewable_sources=res).sel(years=year)
+                            - var['curtailment'].sel(renewable_sources=res, years=year)
                         )
+                model.add_constraints(
+                    battery_system_energy ==  var['dc_system_energy'].sel(years=year),
+                    name=f"DC System Energy - Year {year}"
+                )
                 # Big-M constraints to link binary variable with the energy flow condition
-                M = 10e9 #var['battery_inverter_units'] * param['BATTERY_INVERTER_NOMINAL_CAPACITY']  # A sufficiently large number
+                '''
+                M = 10e12 #var['battery_inverter_units'] * param['BATTERY_INVERTER_NOMINAL_CAPACITY']  # A sufficiently large number
+                
                 model.add_constraints(
                     var['ones'].sel(years=year) == 1,
                     name=f"Fix ones to 1 - {year}"
@@ -84,7 +95,7 @@ def add_energy_balance_constraints(
                     name=f"Battery Energy Positive - Year {year}"
                 )
                 model.add_constraints(
-                    var['dc_system_energy'].sel(years=year) >= (-M) * (var['ones'].sel(years=year)-var['single_flow_dc_system'].sel(years=year)),
+                    var['dc_system_energy'].sel(years=year) >= -M * (var['ones'].sel(years=year)-var['single_flow_dc_system'].sel(years=year)),
                     name=f"Battery Energy Negative - Year {year}"
                 )
                 
@@ -92,7 +103,7 @@ def add_energy_balance_constraints(
                 battery_losses_positive = (
                     var['dc_system_energy'].sel(years=year) * (1 - param['BATTERY_INVERTER_EFFICIENCY_DC_AC'].item())
                 )
-                battery_losses_negative = - (
+                battery_losses_negative = (
                     var['dc_system_energy'].sel(years=year) * ((1 / param['BATTERY_INVERTER_EFFICIENCY_AC_DC'].item()) - 1)
                 )
                 model.add_constraints(
@@ -102,10 +113,45 @@ def add_energy_balance_constraints(
                 model.add_constraints(
                     var['dc_system_charge_losses'].sel(years=year) == battery_losses_negative - battery_losses_negative * var['single_flow_dc_system'].sel(years=year),
                     name=f"DC System Losses Negative - Year {year}"
+                )'''
+
+                # Ensure only one of dc_system_energy_positive or dc_system_energy_negative is nonzero
+                model.add_constraints(
+                    var['dc_system_energy_positive'].sel(years=year) <= param['M'].sel(years=year) * var['single_flow_dc_system'].sel(years=year),
+                    name=f"DC System Energy Positive Constraint - Year {year}"
                 )
 
-                yearly_transformation_losses += var['dc_system_feed_in_losses'].sel(years=year) + var['dc_system_charge_losses'].sel(years=year)            
+                model.add_constraints(
+                    var['dc_system_energy_negative'].sel(years=year) >= -param['M'].sel(years=year) * (var['ones'].sel(years=year) - var['single_flow_dc_system'].sel(years=year)),
+                    name=f"DC System Energy Negative Constraint - Year {year}"
+                )
 
+                model.add_constraints(
+                    var['dc_system_energy_positive'].sel(years=year) + var['dc_system_energy_negative'].sel(years=year) == var['dc_system_energy'].sel(years=year),
+                    name=f"DC System Energy Split - Year {year}"
+                )
+
+                model.add_constraints(
+                    var['dc_system_energy_positive'].sel(years=year) >=  0,
+                    name=f"DC System Energy Positive - Year {year}"
+                )
+
+                model.add_constraints(
+                    var['dc_system_energy_negative'].sel(years=year) <=  0,
+                    name=f"DC System Energy Negative - Year {year}"
+                )
+
+                model.add_constraints(
+                    var['dc_system_feed_in_losses'].sel(years=year) == var['dc_system_energy_positive'].sel(years=year) * (1 - param['BATTERY_INVERTER_EFFICIENCY_DC_AC'].item()),
+                    name=f"DC System Feed In Losses - Year {year}"
+                )
+
+                model.add_constraints(
+                    var['dc_system_charge_losses'].sel(years=year) == var['dc_system_energy_negative'].sel(years=year) * ((1 / param['BATTERY_INVERTER_EFFICIENCY_AC_DC'].item()) - 1),
+                    name=f"DC System Charge Losses - Year {year}"
+                )
+
+                yearly_transformation_losses += var['dc_system_feed_in_losses'].sel(years=year) - var['dc_system_charge_losses'].sel(years=year)            
             else:
                 battery_losses = (var['battery_outflow'].sel(years=year) * (1 - param['BATTERY_INVERTER_EFFICIENCY_DC_AC'].item()) +
                                   var['battery_inflow'].sel(years=year) * ((1 / param['BATTERY_INVERTER_EFFICIENCY_AC_DC'].item()) - 1))
@@ -121,29 +167,19 @@ def add_energy_balance_constraints(
                 
 
         if has_generator:
-            total_generator_energy_production = var['generator_energy_production'].sum('generator_types')
-            yearly_energy_production += total_generator_energy_production.sel(years=year)
-            yearly_generator_transformation_losses = {}
-
             for generator in sets.generator_types.values:
-                # Calculate transformation losses for each generator type
+                yearly_energy_production += var['generator_energy_production'].sel(years=year, generator_types=generator)
                 generator_loss = (
-                    var['generator_energy_production'].sel(generator_types=generator).sel(years=year)
+                    var['generator_energy_production'].sel(generator_types=generator, years=year)
                     * (1 - param['GENERATOR_RECTIFIER_EFFICIENCY'].sel(generator_types=generator))
                 )
-                
-                # Save losses for the generator type into the dictionary
-                yearly_generator_transformation_losses[generator] = generator_loss
                 
                 # Add constraint for each generator type's transformation losses
                 model.add_constraints(
                     generator_loss == var['generator_transformation_losses'].sel(generator_types=generator, years=year),
                     name=f"Generator Transformation Losses - {generator} - Year {year}"
                 )
-
-            # Optionally: Sum up all generator types for total yearly transformation losses
-            total_generator_transformation_losses = sum(yearly_generator_transformation_losses.values())
-            yearly_transformation_losses += total_generator_transformation_losses
+                yearly_transformation_losses += generator_loss
 
         if has_grid_connection:
             if settings.advanced_settings.grid_connection_type == 1:
@@ -199,7 +235,7 @@ def add_renewable_penetration_constraint(
     
     for year in sets.years.values:
         step = years_steps_tuples[year - years[0]][1]
-        
+
         # Calculate renewable energy production for each year
         yearly_res_production = total_res_energy_production.sel(steps=step) - total_curtailment.sel(years=year)
         total_res_production += yearly_res_production
